@@ -6,7 +6,9 @@ import '../../core/accessibility/accessibility.dart';
 import '../../core/storage/database_provider.dart';
 import '../../shared/test_engine/widgets/accessibility_notice.dart';
 import '../../shared/widgets/test_purpose_card.dart';
+import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/app_typography.dart';
 import '../../shared/models/enums.dart';
 import '../../shared/test_engine/domain/test_session_phase.dart';
 import '../../shared/test_engine/engine/test_device_context.dart';
@@ -102,7 +104,7 @@ class _MotionPerceptionScreenState extends ConsumerState<MotionPerceptionScreen>
       children: [
         Text(
           'Watch the moving dots and indicate whether they drift mostly left or mostly right.',
-          style: Theme.of(context).textTheme.bodyLarge,
+          style: AppTypography.body,
         ),
         if (reduceMotion) ...[
           AppSpacing.gapMd,
@@ -115,7 +117,7 @@ class _MotionPerceptionScreenState extends ConsumerState<MotionPerceptionScreen>
         const TestPurposeCard(testId: 'motion_perception'),
         const AccessibilityNotice(),
         AppSpacing.gapLg,
-        FilledButton(onPressed: _start, child: const Text('Start')),
+        FilledButton(onPressed: _start, child: const Text('Start test')),
       ],
     );
   }
@@ -132,7 +134,7 @@ class _MotionPerceptionScreenState extends ConsumerState<MotionPerceptionScreen>
         return Column(
           children: [
             if (controller.state.isPractice)
-              Text('Practice', style: Theme.of(context).textTheme.labelLarge),
+              Text('PRACTICE', style: AppTypography.overline.copyWith(color: AppColors.sage)),
             Expanded(
               child: AnimatedBuilder(
                 animation: _anim,
@@ -178,7 +180,7 @@ class _MotionPerceptionScreenState extends ConsumerState<MotionPerceptionScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Your result', style: Theme.of(context).textTheme.headlineMedium),
+              Text('YOUR RESULT', style: AppTypography.overline.copyWith(color: AppColors.sage)),
               AppSpacing.gapMd,
               Text('Coherence threshold: ${(result.score * 100).toStringAsFixed(0)}%'),
               Text('Confidence: ${result.confidence.level.name}'),

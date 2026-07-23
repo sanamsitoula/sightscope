@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sightscope/core/storage/database.dart';
+import 'package:sightscope/core/storage/database_provider.dart';
 import 'package:sightscope/core/theme/app_theme.dart';
 import 'package:sightscope/features/home/home_dashboard_screen.dart';
 
@@ -10,9 +13,15 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(MaterialApp(
-      theme: AppTheme.light(),
-      home: const HomeDashboardScreen(),
+    final db = AppDatabase.forTesting();
+    addTearDown(db.close);
+
+    await tester.pumpWidget(ProviderScope(
+      overrides: [appDatabaseProvider.overrideWithValue(db)],
+      child: MaterialApp(
+        theme: AppTheme.light(),
+        home: const HomeDashboardScreen(),
+      ),
     ));
     await tester.pumpAndSettle();
 

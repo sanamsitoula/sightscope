@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/storage/database_provider.dart';
+import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/app_typography.dart';
 import '../../shared/models/enums.dart';
 import '../../shared/test_engine/domain/test_session_phase.dart';
 import '../../shared/test_engine/engine/test_device_context.dart';
@@ -96,12 +98,12 @@ class _VisualMemoryScreenState extends ConsumerState<VisualMemoryScreen> {
         Text(
           'Remember the colored squares. After they disappear and reappear, say whether one '
           'changed color.',
-          style: Theme.of(context).textTheme.bodyLarge,
+          style: AppTypography.body,
         ),
         const TestPurposeCard(testId: 'visual_memory'),
         const AccessibilityNotice(),
         AppSpacing.gapLg,
-        FilledButton(onPressed: _start, child: const Text('Start')),
+        FilledButton(onPressed: _start, child: const Text('Start test')),
       ],
     );
   }
@@ -121,7 +123,7 @@ class _VisualMemoryScreenState extends ConsumerState<VisualMemoryScreen> {
         return Column(
           children: [
             if (controller.state.isPractice)
-              Text('Practice', style: Theme.of(context).textTheme.labelLarge),
+              Text('PRACTICE', style: AppTypography.overline.copyWith(color: AppColors.sage)),
             Expanded(
               child: _stage == _MemoryStage.blank
                   ? const SizedBox.expand()
@@ -170,7 +172,7 @@ class _VisualMemoryScreenState extends ConsumerState<VisualMemoryScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Your result', style: Theme.of(context).textTheme.headlineMedium),
+              Text('YOUR RESULT', style: AppTypography.overline.copyWith(color: AppColors.sage)),
               AppSpacing.gapMd,
               Text('Accuracy: ${(result.accuracy * 100).toStringAsFixed(0)}%'),
               Text('Approximate capacity (K): ${approxK.toStringAsFixed(1)} items'),

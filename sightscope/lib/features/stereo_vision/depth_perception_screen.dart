@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/storage/database_provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/app_typography.dart';
 import '../../shared/models/enums.dart';
 import '../../shared/test_engine/domain/test_session_phase.dart';
 import '../../shared/test_engine/engine/test_device_context.dart';
@@ -76,12 +77,12 @@ class _DepthPerceptionScreenState extends ConsumerState<DepthPerceptionScreen> {
         Text(
           'Tap whichever shape looks nearer to you. This screens depth cues from a flat '
           'screen, not true binocular stereo depth.',
-          style: Theme.of(context).textTheme.bodyLarge,
+          style: AppTypography.body,
         ),
         const TestPurposeCard(testId: 'depth_perception'),
         const AccessibilityNotice(),
         AppSpacing.gapLg,
-        FilledButton(onPressed: _start, child: const Text('Start')),
+        FilledButton(onPressed: _start, child: const Text('Start test')),
       ],
     );
   }
@@ -99,7 +100,7 @@ class _DepthPerceptionScreenState extends ConsumerState<DepthPerceptionScreen> {
         return Column(
           children: [
             if (controller.state.isPractice)
-              Text('Practice', style: Theme.of(context).textTheme.labelLarge),
+              Text('PRACTICE', style: AppTypography.overline.copyWith(color: AppColors.sage)),
             Expanded(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -126,7 +127,7 @@ class _DepthPerceptionScreenState extends ConsumerState<DepthPerceptionScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Your result', style: Theme.of(context).textTheme.headlineMedium),
+              Text('YOUR RESULT', style: AppTypography.overline.copyWith(color: AppColors.sage)),
               AppSpacing.gapMd,
               Text('Accuracy: ${(result.accuracy * 100).toStringAsFixed(0)}%'),
               Text('Confidence: ${result.confidence.level.name}'),
@@ -176,7 +177,7 @@ class _DepthCircle extends StatelessWidget {
     return Container(
       width: size,
       height: size,
-      decoration: const BoxDecoration(color: AppColors.accent, shape: BoxShape.circle),
+      decoration: const BoxDecoration(color: AppColors.sage, shape: BoxShape.circle),
     );
   }
 }

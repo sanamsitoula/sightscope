@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/calibration/calibration_provider.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_shapes.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/app_typography.dart';
 import '../../shared/widgets/gradient_hero_header.dart';
 
 class _Point {
@@ -50,7 +50,7 @@ class DisclaimerScreen extends ConsumerWidget {
           children: [
             const GradientHeroHeader(
               title: 'SightScope',
-              subtitle: 'See how you see. Vision, measured.',
+              subtitle: 'See how you see. Vision, measured with clarity.',
             ),
             Padding(
               padding: AppSpacing.padScreen,
@@ -58,30 +58,26 @@ class DisclaimerScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   AppSpacing.gapSm,
-                  Text(
-                    'Before you begin',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
+                  const Text('Before you begin', style: AppTypography.sectionTitle),
                   AppSpacing.gapMd,
                   for (final point in _kPoints) _PointCard(point: point),
                   AppSpacing.gapMd,
                   Container(
                     padding: const EdgeInsets.all(AppSpacing.md),
                     decoration: BoxDecoration(
-                      color: AppColors.warnAmber.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(AppShapes.radiusLg),
-                      border: Border.all(color: AppColors.warnAmber.withValues(alpha: 0.35)),
+                      color: AppColors.softSage,
+                      borderRadius: BorderRadius.circular(20),
                     ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.health_and_safety_outlined, color: AppColors.warnAmber),
+                        const Icon(Icons.health_and_safety_outlined, color: AppColors.deepSage),
                         AppSpacing.gapSm,
                         Expanded(
                           child: Text(
                             'If you have concerns about your vision, please consult a '
                             'qualified eye-care professional.',
-                            style: Theme.of(context).textTheme.bodyMedium,
+                            style: AppTypography.secondary,
                           ),
                         ),
                       ],
@@ -96,10 +92,7 @@ class DisclaimerScreen extends ConsumerWidget {
                         await ref.read(securePrefsProvider).setDisclaimerAccepted(true);
                         onAccepted();
                       },
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(vertical: AppSpacing.xs),
-                        child: Text('I understand, continue'),
-                      ),
+                      child: const Text('I understand, continue'),
                     ),
                   ),
                   AppSpacing.gapMd,
@@ -121,22 +114,18 @@ class _PointCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CircleAvatar(
-            radius: 20,
-            backgroundColor: AppColors.brandSeed.withValues(alpha: 0.12),
-            child: Icon(point.icon, color: AppColors.brandSeed),
-          ),
+          Icon(point.icon, size: 20, color: AppColors.sage),
           AppSpacing.gapMd,
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(point.title, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16)),
-                Text(point.body, style: Theme.of(context).textTheme.bodyMedium),
+                Text(point.title, style: AppTypography.cardTitle),
+                Text(point.body, style: AppTypography.secondary),
               ],
             ),
           ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Spacing scale (logical pixels). 4-pt base grid.
+/// Spacing scale (logical pixels). 4-pt base grid (docs/brand.md §6).
 @immutable
 class AppSpacing {
   const AppSpacing._();
@@ -11,14 +11,30 @@ class AppSpacing {
   static const double lg = 24;
   static const double xl = 32;
   static const double xxl = 48;
+  static const double xxxl = 64;
 
+  /// Default screen padding. The old 16px default is reserved for screens
+  /// where content density genuinely requires it.
   static const EdgeInsets padScreen = EdgeInsets.symmetric(
-    horizontal: md,
-    vertical: md,
+    horizontal: lg,
+    vertical: lg,
+  );
+
+  /// Hero header padding.
+  static const EdgeInsets padHero = EdgeInsets.symmetric(
+    horizontal: lg,
+    vertical: xl,
+  );
+
+  /// Major result-screen padding.
+  static const EdgeInsets padResult = EdgeInsets.symmetric(
+    horizontal: xl,
+    vertical: xxl,
   );
 
   static const SizedBox gapXs = SizedBox(height: xs, width: xs);
   static const SizedBox gapSm = SizedBox(height: sm, width: sm);
   static const SizedBox gapMd = SizedBox(height: md, width: md);
   static const SizedBox gapLg = SizedBox(height: lg, width: lg);
+  static const SizedBox gapXl = SizedBox(height: xl, width: xl);
 }

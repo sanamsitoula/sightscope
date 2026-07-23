@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_shapes.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/app_typography.dart';
 
 class TestPurposeInfo {
   const TestPurposeInfo({required this.icon, required this.whatItTests, required this.whyItHelps});
@@ -72,7 +72,9 @@ const Map<String, TestPurposeInfo> kTestPurposeInfo = {
   ),
 };
 
-/// "What this tests / why it helps" card shown on test intro screens.
+/// "What this tests / why it helps" card shown on test intro screens
+/// (docs/brand.md §15). Flat surface with a hairline border and small
+/// uppercase overline labels — no colored icon badge.
 class TestPurposeCard extends StatelessWidget {
   const TestPurposeCard({super.key, required this.testId});
 
@@ -82,36 +84,30 @@ class TestPurposeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final TestPurposeInfo? info = kTestPurposeInfo[testId];
     if (info == null) return const SizedBox.shrink();
-    final ColorScheme scheme = Theme.of(context).colorScheme;
     return Container(
       margin: const EdgeInsets.only(top: AppSpacing.md, bottom: AppSpacing.sm),
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(AppShapes.radiusLg),
-        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.4)),
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.border),
       ),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CircleAvatar(
-            radius: 20,
-            backgroundColor: AppColors.brandSeed.withValues(alpha: 0.15),
-            child: Icon(info.icon, color: AppColors.brandSeed),
+          Row(
+            children: [
+              Icon(info.icon, size: 18, color: AppColors.sage),
+              AppSpacing.gapSm,
+              Text('WHAT THIS TESTS', style: AppTypography.overline.copyWith(color: AppColors.sage)),
+            ],
           ),
+          AppSpacing.gapXs,
+          Text(info.whatItTests, style: AppTypography.body),
           AppSpacing.gapMd,
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('What this tests', style: Theme.of(context).textTheme.labelLarge),
-                Text(info.whatItTests, style: Theme.of(context).textTheme.bodyMedium),
-                AppSpacing.gapSm,
-                Text('Why it helps', style: Theme.of(context).textTheme.labelLarge),
-                Text(info.whyItHelps, style: Theme.of(context).textTheme.bodyMedium),
-              ],
-            ),
-          ),
+          Text('WHY IT HELPS', style: AppTypography.overline.copyWith(color: AppColors.sage)),
+          AppSpacing.gapXs,
+          Text(info.whyItHelps, style: AppTypography.body),
         ],
       ),
     );

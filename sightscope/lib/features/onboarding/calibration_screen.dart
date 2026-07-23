@@ -9,8 +9,8 @@ import '../../core/calibration/calibration_result.dart';
 import '../../core/calibration/lighting_guidance.dart';
 import '../../core/calibration/viewing_distance.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_shapes.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/app_typography.dart';
 import '../../shared/widgets/gradient_hero_header.dart';
 
 /// Credit-card screen calibration (Task.md §12.3): the user resizes an
@@ -60,13 +60,13 @@ class _CalibrationScreenState extends ConsumerState<CalibrationScreen> {
                   Container(
                     padding: const EdgeInsets.all(AppSpacing.md),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                      borderRadius: BorderRadius.circular(AppShapes.radiusLg),
+                      color: AppColors.warmStone,
+                      borderRadius: BorderRadius.circular(20),
                     ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.credit_card, color: AppColors.brandSeed),
+                        const Icon(Icons.credit_card, color: AppColors.deepSage),
                         AppSpacing.gapSm,
                         Expanded(
                           child: Text(
@@ -74,7 +74,7 @@ class _CalibrationScreenState extends ConsumerState<CalibrationScreen> {
                             'your screen and drag the slider until the outline below exactly '
                             'matches its edges. It works no matter how big or small your '
                             'screen is — you\'re only matching the card, not a fixed size.',
-                            style: Theme.of(context).textTheme.bodyLarge,
+                            style: AppTypography.body,
                           ),
                         ),
                       ],
@@ -131,10 +131,7 @@ class _CalibrationScreenState extends ConsumerState<CalibrationScreen> {
                         widget.onDone?.call();
                         if (context.mounted) context.pop();
                       },
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(vertical: AppSpacing.xs),
-                        child: Text('Confirm calibration'),
-                      ),
+                      child: const Text('Confirm calibration'),
                     ),
                   ),
                   AppSpacing.gapSm,
@@ -185,20 +182,15 @@ class _CardOutline extends StatelessWidget {
       width: widthLogicalPx,
       height: height,
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppColors.brandSeed.withValues(alpha: 0.12),
-            AppColors.accent.withValues(alpha: 0.12),
-          ],
-        ),
-        border: Border.all(color: Theme.of(context).colorScheme.primary, width: 2.5),
-        borderRadius: BorderRadius.circular(12),
+        color: AppColors.softSage,
+        border: Border.all(color: AppColors.deepSage, width: 1.5),
+        borderRadius: BorderRadius.circular(14),
       ),
       child: Center(
         child: Icon(
           Icons.credit_card,
           size: (height * 0.5).clamp(16, 40),
-          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+          color: AppColors.deepSage.withValues(alpha: 0.55),
         ),
       ),
     );
@@ -217,14 +209,14 @@ class _InfoRow extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, color: AppColors.brandSeed, size: 20),
+        Icon(icon, color: AppColors.sage, size: 20),
         AppSpacing.gapSm,
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 15)),
-              Text(body, style: Theme.of(context).textTheme.bodyMedium),
+              Text(title, style: AppTypography.cardTitle),
+              Text(body, style: AppTypography.secondary),
             ],
           ),
         ),

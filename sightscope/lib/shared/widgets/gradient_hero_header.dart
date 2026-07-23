@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_shapes.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/app_typography.dart';
 import 'eye_icon_painter.dart';
 
-/// Brand hero banner used on onboarding and the home dashboard. Pure
-/// gradient + `CustomPaint` — no image assets.
+/// SightScope v2 premium hero header. A flat Deep Ink surface, not a
+/// gradient — decorative gradients are explicitly avoided in the v2
+/// "Quiet Precision" system (docs/brand.md §2, §12). Kept as
+/// `GradientHeroHeader` for call-site compatibility; the name now
+/// describes its historical role, not its current look.
 class GradientHeroHeader extends StatelessWidget {
   const GradientHeroHeader({
     super.key,
@@ -23,35 +26,13 @@ class GradientHeroHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Brightness brightness = Theme.of(context).brightness;
-    final List<Color> colors = brightness == Brightness.dark
-        ? [const Color(0xFF0E4A52), const Color(0xFF17323B)]
-        : [AppColors.brandSeed, const Color(0xFF15A9A0)];
-
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(
         horizontal: AppSpacing.lg,
         vertical: compact ? AppSpacing.lg : AppSpacing.xl,
       ),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: colors,
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(AppShapes.radiusXl),
-          bottomRight: Radius.circular(AppShapes.radiusXl),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.brandSeed.withValues(alpha: 0.25),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
+      color: AppColors.deepInk,
       child: Row(
         children: [
           Expanded(
@@ -60,34 +41,20 @@ class GradientHeroHeader extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: (compact
-                          ? Theme.of(context).textTheme.headlineMedium
-                          : Theme.of(context).textTheme.headlineLarge)
-                      ?.copyWith(color: Colors.white, fontWeight: FontWeight.w700),
+                  style: (compact ? AppTypography.sectionTitle : AppTypography.hero)
+                      .copyWith(color: Colors.white),
                 ),
                 AppSpacing.gapSm,
                 Text(
                   subtitle,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyLarge
-                      ?.copyWith(color: Colors.white.withValues(alpha: 0.92)),
+                  style: AppTypography.body.copyWith(color: Colors.white.withValues(alpha: 0.72)),
                 ),
               ],
             ),
           ),
           if (showEye) ...[
             AppSpacing.gapMd,
-            DecoratedBox(
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.14),
-                shape: BoxShape.circle,
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                child: EyeGraphic(size: compact ? 40 : 56, irisColor: Colors.white),
-              ),
-            ),
+            EyeGraphic(size: compact ? 36 : 48, irisColor: AppColors.sage),
           ],
         ],
       ),

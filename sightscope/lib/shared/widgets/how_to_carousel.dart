@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_motion.dart';
-import '../../core/theme/app_shapes.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/app_typography.dart';
 
 class HowToStep {
   const HowToStep({required this.icon, required this.label});
@@ -16,6 +16,7 @@ class HowToStep {
 /// A small, auto-advancing "how this works" animated sequence — the
 /// in-app substitute for a demo video/GIF (no video asset dependency; see
 /// docs/animated_howto_prompt.md for a prompt to generate a real one).
+/// One flat, hairline-bordered surface — no colored icon badge.
 class HowToCarousel extends StatefulWidget {
   const HowToCarousel({super.key, required this.steps});
 
@@ -49,13 +50,15 @@ class _HowToCarouselState extends State<HowToCarousel> {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg, horizontal: AppSpacing.md),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainer,
-        borderRadius: BorderRadius.circular(AppShapes.radiusLg),
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.border),
       ),
       child: Column(
         children: [
           AnimatedSwitcher(
             duration: AppMotion.standard,
+            switchInCurve: AppMotion.standardCurve,
             transitionBuilder: (child, animation) => FadeTransition(
               opacity: animation,
               child: ScaleTransition(scale: animation, child: child),
@@ -63,16 +66,12 @@ class _HowToCarouselState extends State<HowToCarousel> {
             child: Column(
               key: ValueKey(_index),
               children: [
-                CircleAvatar(
-                  radius: 32,
-                  backgroundColor: AppColors.accent.withValues(alpha: 0.15),
-                  child: Icon(step.icon, size: 32, color: AppColors.accent),
-                ),
+                Icon(step.icon, size: 32, color: AppColors.sage),
                 AppSpacing.gapSm,
                 Text(
                   step.label,
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyLarge,
+                  style: AppTypography.body,
                 ),
               ],
             ),
@@ -88,9 +87,7 @@ class _HowToCarouselState extends State<HowToCarousel> {
                   width: i == _index ? 18 : 6,
                   height: 6,
                   decoration: BoxDecoration(
-                    color: i == _index
-                        ? AppColors.accent
-                        : AppColors.accent.withValues(alpha: 0.25),
+                    color: i == _index ? AppColors.sage : AppColors.border,
                     borderRadius: BorderRadius.circular(3),
                   ),
                 ),

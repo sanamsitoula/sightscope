@@ -2,14 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/storage/database_provider.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/storage/database_provider.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/app_typography.dart';
 import '../../shared/models/enums.dart';
 import '../../shared/test_engine/domain/test_session_phase.dart';
 import '../../shared/test_engine/engine/test_device_context.dart';
 import '../../shared/test_engine/engine/test_result_repository.dart';
 import '../../shared/test_engine/engine/test_session_controller.dart';
+import '../../shared/widgets/focus_target_painter.dart';
 import '../../shared/widgets/gradient_hero_header.dart';
 import '../../shared/widgets/how_to_carousel.dart';
 import '../../shared/widgets/test_purpose_card.dart';
@@ -19,7 +21,7 @@ enum _TrialStage { waiting, armed, tooEarly }
 
 const List<HowToStep> _kReactionHowTo = [
   HowToStep(icon: Icons.remove_red_eye_outlined, label: 'Watch the center of the screen'),
-  HowToStep(icon: Icons.circle_outlined, label: 'A glowing circle will appear without warning'),
+  HowToStep(icon: Icons.adjust, label: 'A focus target will appear without warning'),
   HowToStep(icon: Icons.touch_app_outlined, label: 'Tap anywhere as fast as you can'),
 ];
 
@@ -120,7 +122,7 @@ class _ReactionTimeScreenState extends ConsumerState<ReactionTimeScreen> {
         children: [
           const GradientHeroHeader(
             title: 'Reaction Time',
-            subtitle: 'Tap the moment you see the glowing circle appear.',
+            subtitle: 'Tap the moment you see the focus target appear.',
             compact: true,
           ),
           Padding(
@@ -134,7 +136,7 @@ class _ReactionTimeScreenState extends ConsumerState<ReactionTimeScreen> {
                 AppSpacing.gapLg,
                 SizedBox(
                   width: double.infinity,
-                  child: FilledButton(onPressed: _start, child: const Text('Start')),
+                  child: FilledButton(onPressed: _start, child: const Text('Start test')),
                 ),
               ],
             ),
@@ -151,17 +153,10 @@ class _ReactionTimeScreenState extends ConsumerState<ReactionTimeScreen> {
         return GestureDetector(
           onTap: _onTap,
           behavior: HitTestBehavior.opaque,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Theme.of(context).colorScheme.surface,
-                  Theme.of(context).colorScheme.surfaceContainerHighest,
-                ],
-              ),
-            ),
+          child: ColoredBox(
+            // The brand disappears during measurement — a flat canvas, no
+            // gradient (docs/brand.md §18).
+            color: Theme.of(context).colorScheme.surface,
             child: SizedBox.expand(
               child: SafeArea(
                 child: Column(
@@ -169,12 +164,15 @@ class _ReactionTimeScreenState extends ConsumerState<ReactionTimeScreen> {
                     if (controller.state.isPractice)
                       Padding(
                         padding: const EdgeInsets.only(top: AppSpacing.sm),
-                        child: Text('Practice', style: Theme.of(context).textTheme.labelLarge),
+                        child: Text(
+                          'PRACTICE',
+                          style: AppTypography.overline.copyWith(color: AppColors.sage),
+                        ),
                       ),
                     Expanded(
                       child: Center(
                         child: _stage == _TrialStage.armed
-                            ? _GlowingTarget()
+                            ? _PulsingFocusTarget()
                             : Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
@@ -188,7 +186,7 @@ class _ReactionTimeScreenState extends ConsumerState<ReactionTimeScreen> {
                                     _stage == _TrialStage.tooEarly
                                         ? 'Too early — wait for it'
                                         : 'Wait…',
-                                    style: Theme.of(context).textTheme.titleLarge,
+                                    style: AppTypography.sectionTitle,
                                   ),
                                 ],
                               ),
@@ -205,24 +203,37 @@ class _ReactionTimeScreenState extends ConsumerState<ReactionTimeScreen> {
         return const Center(child: CircularProgressIndicator());
       case TestSessionPhase.result:
         final result = controller.state.result!;
-        return Padding(
-          padding: AppSpacing.padScreen,
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Your result', style: Theme.of(context).textTheme.headlineMedium),
-                AppSpacing.gapMd,
-                Text('Mean reaction time: ${result.reactionTime.toStringAsFixed(0)} ms'),
-                Text('Confidence: ${result.confidence.level.name}'),
-                AppSpacing.gapMd,
-                const Text(
-                  'Reaction time varies with device, alertness, fatigue, and practice, so this '
-                  'is not a clinical or diagnostic measurement. This is an educational '
-                  'self-assessment, not a medical diagnosis.',
-                ),
-                AppSpacing.gapLg,
-                FilledButton(
+        return SingleChildScrollView(
+          padding: AppSpacing.padResult,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('YOUR RESULT', style: AppTypography.overline.copyWith(color: AppColors.sage)),
+              AppSpacing.gapSm,
+              Text(result.reactionTime.toStringAsFixed(0), style: AppTypography.metric),
+              AppSpacing.gapXs,
+              const Text('ms mean reaction time', style: AppTypography.cardTitle),
+              AppSpacing.gapXl,
+              const Divider(height: 1),
+              AppSpacing.gapLg,
+              Text('CONFIDENCE', style: AppTypography.overline.copyWith(color: AppColors.sage)),
+              AppSpacing.gapXs,
+              Text(result.confidence.level.name, style: AppTypography.cardTitle),
+              AppSpacing.gapLg,
+              const Divider(height: 1),
+              AppSpacing.gapLg,
+              Text('WHAT THIS MEANS', style: AppTypography.overline.copyWith(color: AppColors.sage)),
+              AppSpacing.gapXs,
+              const Text(
+                'Reaction time varies with device, alertness, fatigue, and practice, so this '
+                'is not a clinical or diagnostic measurement. This is an educational '
+                'self-assessment, not a medical diagnosis.',
+                style: AppTypography.body,
+              ),
+              AppSpacing.gapXl,
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
                   onPressed: () {
                     controller.acknowledgeLimitations();
                     controller.chooseNextStep();
@@ -230,20 +241,26 @@ class _ReactionTimeScreenState extends ConsumerState<ReactionTimeScreen> {
                   },
                   child: const Text('Continue'),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         );
       case TestSessionPhase.limitations:
       case TestSessionPhase.nextStep:
         return Center(
-          child: FilledButton(
-            onPressed: () async {
-              await controller.persist();
-              controller.complete();
-              if (context.mounted) context.pop();
-            },
-            child: const Text('Save and finish'),
+          child: SizedBox(
+            width: double.infinity,
+            child: Padding(
+              padding: AppSpacing.padScreen,
+              child: FilledButton(
+                onPressed: () async {
+                  await controller.persist();
+                  controller.complete();
+                  if (context.mounted) context.pop();
+                },
+                child: const Text('Save and finish'),
+              ),
+            ),
           ),
         );
       default:
@@ -252,15 +269,15 @@ class _ReactionTimeScreenState extends ConsumerState<ReactionTimeScreen> {
   }
 }
 
-/// The reaction-time target — a soft-glowing gradient orb rather than a
-/// flat circle, with a gentle pulse to draw the eye without implying any
-/// particular "correct" reaction speed.
-class _GlowingTarget extends StatefulWidget {
+/// The reaction-time stimulus: the brand's "Focus Target" mark
+/// (docs/brand.md §11/§17), gently pulsing to cue the response — flat
+/// colors only, no glow.
+class _PulsingFocusTarget extends StatefulWidget {
   @override
-  State<_GlowingTarget> createState() => _GlowingTargetState();
+  State<_PulsingFocusTarget> createState() => _PulsingFocusTargetState();
 }
 
-class _GlowingTargetState extends State<_GlowingTarget> with SingleTickerProviderStateMixin {
+class _PulsingFocusTargetState extends State<_PulsingFocusTarget> with SingleTickerProviderStateMixin {
   late final AnimationController _pulse =
       AnimationController(vsync: this, duration: const Duration(milliseconds: 700))..repeat(reverse: true);
 
@@ -275,26 +292,10 @@ class _GlowingTargetState extends State<_GlowingTarget> with SingleTickerProvide
     return AnimatedBuilder(
       animation: _pulse,
       builder: (context, child) {
-        final double scale = 1.0 + _pulse.value * 0.08;
+        final double scale = 1.0 + _pulse.value * 0.06;
         return Transform.scale(scale: scale, child: child);
       },
-      child: Container(
-        width: 110,
-        height: 110,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: const RadialGradient(
-            colors: [Color(0xFFB18CFF), AppColors.accent],
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.accent.withValues(alpha: 0.55),
-              blurRadius: 36,
-              spreadRadius: 6,
-            ),
-          ],
-        ),
-      ),
+      child: const FocusTarget(size: 110),
     );
   }
 }

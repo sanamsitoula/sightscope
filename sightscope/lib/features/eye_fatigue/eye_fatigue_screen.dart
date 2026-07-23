@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/storage/database_provider.dart';
+import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/app_typography.dart';
 import '../../shared/models/enums.dart';
 import '../../shared/test_engine/domain/test_session_phase.dart';
 import '../../shared/test_engine/engine/test_device_context.dart';
@@ -72,12 +74,12 @@ class _EyeFatigueScreenState extends ConsumerState<EyeFatigueScreen> {
         Text(
           'A few quick questions about recent eye comfort during screen use. There are no '
           'right or wrong answers.',
-          style: Theme.of(context).textTheme.bodyLarge,
+          style: AppTypography.body,
         ),
         const TestPurposeCard(testId: 'eye_fatigue'),
         const AccessibilityNotice(),
         AppSpacing.gapLg,
-        FilledButton(onPressed: _start, child: const Text('Start')),
+        FilledButton(onPressed: _start, child: const Text('Start test')),
       ],
     );
   }
@@ -112,7 +114,7 @@ class _EyeFatigueScreenState extends ConsumerState<EyeFatigueScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Your result', style: Theme.of(context).textTheme.headlineMedium),
+              Text('YOUR RESULT', style: AppTypography.overline.copyWith(color: AppColors.sage)),
               AppSpacing.gapMd,
               Text('Average symptom score: ${result.score.toStringAsFixed(1)} / 4'),
               AppSpacing.gapMd,

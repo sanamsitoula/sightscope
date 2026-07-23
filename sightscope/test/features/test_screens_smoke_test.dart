@@ -40,9 +40,9 @@ void main() {
   testWidgets('VisualAcuityScreen shows intro then starts a trial', (tester) async {
     await tester.pumpWidget(_harness(const VisualAcuityScreen(), db));
     await tester.pumpAndSettle();
-    expect(find.text('Start'), findsOneWidget);
-    await tester.ensureVisible(find.text('Start'));
-    await tester.tap(find.text('Start'), warnIfMissed: false);
+    expect(find.text('Start test'), findsOneWidget);
+    await tester.ensureVisible(find.text('Start test'));
+    await tester.tap(find.text('Start test'), warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.text('Continue'), findsOneWidget); // instructions phase
   });
@@ -50,20 +50,20 @@ void main() {
   testWidgets('NearVisionScreen shows intro', (tester) async {
     await tester.pumpWidget(_harness(const NearVisionScreen(), db));
     await tester.pumpAndSettle();
-    expect(find.text('Start'), findsOneWidget);
+    expect(find.text('Start test'), findsOneWidget);
   });
 
   testWidgets('ContrastSensitivityScreen shows intro', (tester) async {
     await tester.pumpWidget(_harness(const ContrastSensitivityScreen(), db));
     await tester.pumpAndSettle();
-    expect(find.text('Start'), findsOneWidget);
+    expect(find.text('Start test'), findsOneWidget);
   });
 
   testWidgets('ColorVisionScreen shows intro then a plate', (tester) async {
     await tester.pumpWidget(_harness(const ColorVisionScreen(), db));
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('Start'));
-    await tester.tap(find.text('Start'), warnIfMissed: false);
+    await tester.ensureVisible(find.text('Start test'));
+    await tester.tap(find.text('Start test'), warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.text('None visible'), findsOneWidget);
   });
@@ -71,8 +71,8 @@ void main() {
   testWidgets('ReactionTimeScreen shows intro then waiting state', (tester) async {
     await tester.pumpWidget(_harness(const ReactionTimeScreen(), db));
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('Start'));
-    await tester.tap(find.text('Start'), warnIfMissed: false);
+    await tester.ensureVisible(find.text('Start test'));
+    await tester.tap(find.text('Start test'), warnIfMissed: false);
     await tester.pump();
     expect(find.textContaining('Wait'), findsOneWidget);
     // Flush the pending stimulus-onset timer so it doesn't leak into other tests.

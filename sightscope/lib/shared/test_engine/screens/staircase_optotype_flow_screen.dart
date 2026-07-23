@@ -153,6 +153,7 @@ class _StaircaseOptotypeFlowScreenState extends ConsumerState<StaircaseOptotypeF
         return const Center(child: CircularProgressIndicator());
       case TestSessionPhase.result:
         return _ResultView(
+          testTitle: widget.title,
           result: controller.state.result!,
           limitationsText: widget.limitationsText,
           onContinue: () {
@@ -218,12 +219,12 @@ class _IntroView extends StatelessWidget {
                   Text(
                     'Using an approximate default calibration. For a more accurate result, '
                     'calibrate your screen from Settings first.',
-                    style: Theme.of(context).textTheme.bodyMedium,
+                    style: AppTypography.secondary,
                   ),
                 AppSpacing.gapLg,
                 SizedBox(
                   width: double.infinity,
-                  child: FilledButton(onPressed: onStart, child: const Text('Start')),
+                  child: FilledButton(onPressed: onStart, child: const Text('Start test')),
                 ),
               ],
             ),
@@ -247,10 +248,13 @@ class _InstructionsView extends StatelessWidget {
         Text(
           'A shape will appear. Use the arrow that matches its open side or gap. '
           'Answer as accurately as you can — there is no time limit.',
-          style: Theme.of(context).textTheme.bodyLarge,
+          style: AppTypography.body,
         ),
         AppSpacing.gapLg,
-        FilledButton(onPressed: onContinue, child: const Text('Continue')),
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton(onPressed: onContinue, child: const Text('Continue')),
+        ),
       ],
     );
   }
@@ -269,10 +273,13 @@ class _CalibrationCheckView extends StatelessWidget {
         Text(
           'Hold your device at the recommended distance, in steady, even lighting, '
           'before continuing.',
-          style: Theme.of(context).textTheme.bodyLarge,
+          style: AppTypography.body,
         ),
         AppSpacing.gapLg,
-        FilledButton(onPressed: onContinue, child: const Text("I'm ready")),
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton(onPressed: onContinue, child: const Text("I'm ready")),
+        ),
       ],
     );
   }
@@ -307,21 +314,18 @@ class _TrialView extends StatelessWidget {
 
     return Column(
       children: [
-        if (isPractice) Text('Practice', style: Theme.of(context).textTheme.labelLarge),
+        if (isPractice)
+          Text('PRACTICE', style: AppTypography.overline.copyWith(color: AppColors.sage)),
         Expanded(
+          // The brand disappears during measurement — a plain bordered
+          // surface, no shadow, no color (docs/brand.md §18).
           child: Center(
             child: Container(
               padding: const EdgeInsets.all(AppSpacing.lg),
               decoration: BoxDecoration(
                 color: AppColors.stimulusPaper,
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.08),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppColors.border),
               ),
               child: OptotypeView(
                 shape: shape == 'E' ? OptotypeShape.tumblingE : OptotypeShape.landoltC,
@@ -340,7 +344,7 @@ class _TrialView extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 8),
             child: Icon(
               lastCorrect! ? Icons.check_circle : Icons.cancel,
-              color: lastCorrect! ? AppColors.okGreen : AppColors.warnAmber,
+              color: lastCorrect! ? AppColors.success : AppColors.error,
             ),
           ),
         OrientationResponsePad(onSelected: onRespond),
@@ -351,8 +355,14 @@ class _TrialView extends StatelessWidget {
 }
 
 class _ResultView extends StatelessWidget {
-  const _ResultView({required this.result, required this.limitationsText, required this.onContinue});
+  const _ResultView({
+    required this.testTitle,
+    required this.result,
+    required this.limitationsText,
+    required this.onContinue,
+  });
 
+  final String testTitle;
   final TestResult result;
   final String limitationsText;
   final VoidCallback onContinue;
@@ -360,22 +370,38 @@ class _ResultView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
+      padding: AppSpacing.padResult,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Your result', style: Theme.of(context).textTheme.headlineMedium),
+          Text('YOUR RESULT', style: AppTypography.overline.copyWith(color: AppColors.sage)),
+          AppSpacing.gapSm,
+          Text(result.score.toStringAsFixed(2), style: AppTypography.metric),
+          AppSpacing.gapXs,
+          Text(testTitle, style: AppTypography.cardTitle),
+          AppSpacing.gapXl,
+          const Divider(height: 1),
+          AppSpacing.gapLg,
+          Text('CONFIDENCE', style: AppTypography.overline.copyWith(color: AppColors.sage)),
+          AppSpacing.gapXs,
+          Text(result.confidence.level.name, style: AppTypography.cardTitle),
+          AppSpacing.gapLg,
+          const Divider(height: 1),
+          AppSpacing.gapLg,
+          Text('WHAT THIS MEANS', style: AppTypography.overline.copyWith(color: AppColors.sage)),
+          AppSpacing.gapXs,
+          Text(limitationsText, style: AppTypography.body),
           AppSpacing.gapMd,
-          Text('Score: ${result.score.toStringAsFixed(2)}', style: AppTypography.metricValue),
-          Text('Confidence: ${result.confidence.level.name}'),
-          AppSpacing.gapMd,
-          Text(limitationsText, style: Theme.of(context).textTheme.bodyMedium),
-          AppSpacing.gapMd,
-          const Text(
+          Text(
             'This screening result may be worth discussing with a qualified eye-care '
             'professional. This is an educational self-assessment, not a medical diagnosis.',
+            style: AppTypography.secondary,
           ),
-          AppSpacing.gapLg,
-          FilledButton(onPressed: onContinue, child: const Text('Continue')),
+          AppSpacing.gapXl,
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(onPressed: onContinue, child: const Text('Continue')),
+          ),
         ],
       ),
     );
@@ -390,7 +416,10 @@ class _FinishView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: FilledButton(onPressed: onFinish, child: const Text('Save and finish')),
+      child: SizedBox(
+        width: double.infinity,
+        child: FilledButton(onPressed: onFinish, child: const Text('Save and finish')),
+      ),
     );
   }
 }

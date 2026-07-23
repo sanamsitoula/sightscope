@@ -32,8 +32,8 @@ class _TrendBarPainter extends CustomPainter {
     final double baselineHeight = size.height * (baseline.abs() / maxValue).clamp(0.02, 1.0);
     final double currentHeight = size.height * (current.abs() / maxValue).clamp(0.02, 1.0);
 
-    final Paint baselinePaint = Paint()..color = AppColors.stimulusInk.withValues(alpha: 0.35);
-    final Paint currentPaint = Paint()..color = AppColors.accent;
+    final Paint baselinePaint = Paint()..color = AppColors.border;
+    final Paint currentPaint = Paint()..color = AppColors.sage;
 
     canvas.drawRect(
       Rect.fromLTWH(size.width * 0.18, size.height - baselineHeight, barWidth, baselineHeight),

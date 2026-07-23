@@ -42,11 +42,7 @@ class EyeIconPainter extends CustomPainter {
     canvas.drawRect(Offset.zero & size, Paint()..color = scleraColor);
 
     final double irisRadius = min(w, size.height) * 0.28;
-    final Paint irisPaint = Paint()
-      ..shader = RadialGradient(
-        colors: [irisColor.withValues(alpha: 0.9), irisColor],
-      ).createShader(Rect.fromCircle(center: center, radius: irisRadius));
-    canvas.drawCircle(center, irisRadius, irisPaint);
+    canvas.drawCircle(center, irisRadius, Paint()..color = irisColor);
     canvas.drawCircle(center, irisRadius * 0.45, Paint()..color = pupilColor);
     canvas.drawCircle(
       Offset(center.dx - irisRadius * 0.18, center.dy - irisRadius * 0.18),
@@ -73,7 +69,7 @@ class EyeIconPainter extends CustomPainter {
 
 /// Convenience widget wrapper, sized as a square.
 class EyeGraphic extends StatelessWidget {
-  const EyeGraphic({super.key, required this.size, this.irisColor = const Color(0xFF0E7C86)});
+  const EyeGraphic({super.key, required this.size, this.irisColor = const Color(0xFF6F9188)});
 
   final double size;
   final Color irisColor;
