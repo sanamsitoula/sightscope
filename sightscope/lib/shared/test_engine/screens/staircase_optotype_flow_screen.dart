@@ -14,6 +14,7 @@ import '../domain/test_session_phase.dart';
 import '../engine/test_device_context.dart';
 import '../engine/test_result_repository.dart';
 import '../engine/test_session_controller.dart';
+import '../widgets/accessibility_notice.dart';
 import '../widgets/optotype_painter.dart';
 import '../widgets/orientation_response_pad.dart';
 
@@ -179,6 +180,7 @@ class _IntroView extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(introText, style: Theme.of(context).textTheme.bodyLarge),
+        const AccessibilityNotice(),
         AppSpacing.gapMd,
         if (!calibrated)
           Text(

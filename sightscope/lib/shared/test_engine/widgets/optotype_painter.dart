@@ -117,15 +117,20 @@ class OptotypeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(
-      size: Size(heightPx, heightPx),
-      painter: OptotypePainter(
-        shape: shape,
-        heightPx: heightPx,
-        strokePx: strokePx,
-        orientationDeg: orientationDeg,
-        ink: ink,
-        paper: paper,
+    return Semantics(
+      label: shape == OptotypeShape.tumblingE
+          ? 'Tumbling E optotype, use the arrow buttons to answer'
+          : 'Landolt C optotype, use the arrow buttons to answer',
+      child: CustomPaint(
+        size: Size(heightPx, heightPx),
+        painter: OptotypePainter(
+          shape: shape,
+          heightPx: heightPx,
+          strokePx: strokePx,
+          orientationDeg: orientationDeg,
+          ink: ink,
+          paper: paper,
+        ),
       ),
     );
   }

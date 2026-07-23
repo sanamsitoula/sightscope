@@ -10,23 +10,24 @@ import '../../shared/test_engine/engine/test_device_context.dart';
 import '../../shared/test_engine/engine/test_result_repository.dart';
 import '../../shared/test_engine/engine/test_session_controller.dart';
 import '../../shared/test_engine/widgets/accessibility_notice.dart';
-import 'color_plate_painter.dart';
-import 'color_vision_test_definition.dart';
+import 'eye_fatigue_test_definition.dart';
 
-class ColorVisionScreen extends ConsumerStatefulWidget {
-  const ColorVisionScreen({super.key});
+const List<String> _kRatingLabels = ['Never', 'Rarely', 'Sometimes', 'Often', 'Very often'];
+
+class EyeFatigueScreen extends ConsumerStatefulWidget {
+  const EyeFatigueScreen({super.key});
 
   @override
-  ConsumerState<ColorVisionScreen> createState() => _ColorVisionScreenState();
+  ConsumerState<EyeFatigueScreen> createState() => _EyeFatigueScreenState();
 }
 
-class _ColorVisionScreenState extends ConsumerState<ColorVisionScreen> {
+class _EyeFatigueScreenState extends ConsumerState<EyeFatigueScreen> {
   TestSessionController? _controller;
 
   void _start() {
     final repository = TestResultRepository(ref.read(appDatabaseProvider));
     final controller = TestSessionController(
-      definition: const ColorVisionTestDefinition(),
+      definition: const EyeFatigueTestDefinition(),
       deviceContext: const TestDeviceContext(
         deviceModel: 'unknown',
         screenSize: 'unknown',
@@ -40,19 +41,14 @@ class _ColorVisionScreenState extends ConsumerState<ColorVisionScreen> {
     controller.acknowledgeInstructions();
     controller.confirmCalibration();
     controller.beginPractice();
+    controller.beginMainTest();
     setState(() => _controller = controller);
   }
 
-  void _respond(String shape) {
+  void _respond(int rating) {
     final controller = _controller!;
-    controller.recordResponse(answer: {'shape': shape}, durationMillis: 0);
-    if (controller.isQueueExhausted) {
-      if (controller.state.phase == TestSessionPhase.practice) {
-        controller.beginMainTest();
-      } else if (controller.state.phase == TestSessionPhase.mainTest) {
-        controller.score();
-      }
-    }
+    controller.recordResponse(answer: {'rating': rating}, durationMillis: 0);
+    if (controller.isQueueExhausted) controller.score();
     setState(() {});
   }
 
@@ -60,7 +56,7 @@ class _ColorVisionScreenState extends ConsumerState<ColorVisionScreen> {
   Widget build(BuildContext context) {
     final controller = _controller;
     return Scaffold(
-      appBar: AppBar(title: const Text('Color Perception')),
+      appBar: AppBar(title: const Text('Eye Fatigue Questionnaire')),
       body: Padding(
         padding: AppSpacing.padScreen,
         child: controller == null ? _buildIntro(context) : _buildPhase(context, controller),
@@ -73,8 +69,8 @@ class _ColorVisionScreenState extends ConsumerState<ColorVisionScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Identify the shape hidden in each pattern of colored dots. Choose "None visible" '
-          'if you cannot see a shape.',
+          'A few quick questions about recent eye comfort during screen use. There are no '
+          'right or wrong answers.',
           style: Theme.of(context).textTheme.bodyLarge,
         ),
         const AccessibilityNotice(),
@@ -86,43 +82,23 @@ class _ColorVisionScreenState extends ConsumerState<ColorVisionScreen> {
 
   Widget _buildPhase(BuildContext context, TestSessionController controller) {
     switch (controller.state.phase) {
-      case TestSessionPhase.practice:
       case TestSessionPhase.mainTest:
         final stimulus = controller.state.currentStimulus;
         if (stimulus == null) return const Center(child: CircularProgressIndicator());
-        final String shapeName = stimulus.payload['shape'] as String;
-        final double colorDistance = (stimulus.payload['colorDistance'] as num).toDouble();
-        final int seed = stimulus.payload['seed'] as int;
-        final ColorPlateShape shape = ColorPlateShape.values.firstWhere(
-          (s) => s.name == shapeName,
-          orElse: () => ColorPlateShape.none,
-        );
+        final String question = stimulus.payload['question'] as String;
         return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (controller.state.isPractice)
-              Text('Practice', style: Theme.of(context).textTheme.labelLarge),
-            Expanded(
-              child: Center(
-                child: SizedBox(
-                  width: 260,
-                  height: 260,
-                  child: CustomPaint(
-                    painter: ColorPlatePainter(seed: seed, shape: shape, colorDistance: colorDistance),
-                  ),
+            Text(question, style: Theme.of(context).textTheme.titleLarge),
+            AppSpacing.gapLg,
+            for (int i = 0; i < _kRatingLabels.length; i++)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: OutlinedButton(
+                  onPressed: () => _respond(i),
+                  child: Align(alignment: Alignment.centerLeft, child: Text(_kRatingLabels[i])),
                 ),
               ),
-            ),
-            Wrap(
-              spacing: 8,
-              children: [
-                for (final s in ['circle', 'triangle', 'square', 'none'])
-                  FilledButton.tonal(
-                    onPressed: () => _respond(s),
-                    child: Text(s == 'none' ? 'None visible' : s),
-                  ),
-              ],
-            ),
-            AppSpacing.gapMd,
           ],
         );
       case TestSessionPhase.scoring:
@@ -136,13 +112,12 @@ class _ColorVisionScreenState extends ConsumerState<ColorVisionScreen> {
             children: [
               Text('Your result', style: Theme.of(context).textTheme.headlineMedium),
               AppSpacing.gapMd,
-              Text('Accuracy: ${(result.accuracy * 100).toStringAsFixed(0)}%'),
-              Text('Confidence: ${result.confidence.level.name}'),
+              Text('Average symptom score: ${result.score.toStringAsFixed(1)} / 4'),
               AppSpacing.gapMd,
               const Text(
-                'This is a screening flag, not a diagnostic color-vision test, and cannot '
-                'determine a specific type of color-vision difference. Display color rendering '
-                'varies by device. This is an educational self-assessment, not a medical diagnosis.',
+                'This is a self-report screening questionnaire, not a diagnosis of digital '
+                'eye strain, dry eye disease, or any other condition. If symptoms are frequent '
+                'or bothersome, consider discussing them with a qualified eye-care professional.',
               ),
               AppSpacing.gapLg,
               FilledButton(

@@ -10,23 +10,25 @@ import '../../shared/test_engine/engine/test_device_context.dart';
 import '../../shared/test_engine/engine/test_result_repository.dart';
 import '../../shared/test_engine/engine/test_session_controller.dart';
 import '../../shared/test_engine/widgets/accessibility_notice.dart';
-import 'color_plate_painter.dart';
-import 'color_vision_test_definition.dart';
+import 'visual_memory_test_definition.dart';
 
-class ColorVisionScreen extends ConsumerStatefulWidget {
-  const ColorVisionScreen({super.key});
+enum _MemoryStage { study, blank, test }
+
+class VisualMemoryScreen extends ConsumerStatefulWidget {
+  const VisualMemoryScreen({super.key});
 
   @override
-  ConsumerState<ColorVisionScreen> createState() => _ColorVisionScreenState();
+  ConsumerState<VisualMemoryScreen> createState() => _VisualMemoryScreenState();
 }
 
-class _ColorVisionScreenState extends ConsumerState<ColorVisionScreen> {
+class _VisualMemoryScreenState extends ConsumerState<VisualMemoryScreen> {
   TestSessionController? _controller;
+  _MemoryStage _stage = _MemoryStage.study;
 
   void _start() {
     final repository = TestResultRepository(ref.read(appDatabaseProvider));
     final controller = TestSessionController(
-      definition: const ColorVisionTestDefinition(),
+      definition: VisualMemoryTestDefinition(),
       deviceContext: const TestDeviceContext(
         deviceModel: 'unknown',
         screenSize: 'unknown',
@@ -41,26 +43,44 @@ class _ColorVisionScreenState extends ConsumerState<ColorVisionScreen> {
     controller.confirmCalibration();
     controller.beginPractice();
     setState(() => _controller = controller);
+    _scheduleStages();
   }
 
-  void _respond(String shape) {
+  void _scheduleStages() {
+    setState(() => _stage = _MemoryStage.study);
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      if (!mounted) return;
+      setState(() => _stage = _MemoryStage.blank);
+      Future.delayed(const Duration(milliseconds: 1000), () {
+        if (!mounted) return;
+        setState(() => _stage = _MemoryStage.test);
+      });
+    });
+  }
+
+  void _respond(String response) {
     final controller = _controller!;
-    controller.recordResponse(answer: {'shape': shape}, durationMillis: 0);
+    controller.recordResponse(answer: {'response': response}, durationMillis: 0);
     if (controller.isQueueExhausted) {
       if (controller.state.phase == TestSessionPhase.practice) {
         controller.beginMainTest();
-      } else if (controller.state.phase == TestSessionPhase.mainTest) {
+        setState(() {});
+        _scheduleStages();
+      } else {
         controller.score();
+        setState(() {});
       }
+    } else {
+      setState(() {});
+      _scheduleStages();
     }
-    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
     final controller = _controller;
     return Scaffold(
-      appBar: AppBar(title: const Text('Color Perception')),
+      appBar: AppBar(title: const Text('Visual Memory')),
       body: Padding(
         padding: AppSpacing.padScreen,
         child: controller == null ? _buildIntro(context) : _buildPhase(context, controller),
@@ -73,8 +93,8 @@ class _ColorVisionScreenState extends ConsumerState<ColorVisionScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Identify the shape hidden in each pattern of colored dots. Choose "None visible" '
-          'if you cannot see a shape.',
+          'Remember the colored squares. After they disappear and reappear, say whether one '
+          'changed color.',
           style: Theme.of(context).textTheme.bodyLarge,
         ),
         const AccessibilityNotice(),
@@ -90,38 +110,51 @@ class _ColorVisionScreenState extends ConsumerState<ColorVisionScreen> {
       case TestSessionPhase.mainTest:
         final stimulus = controller.state.currentStimulus;
         if (stimulus == null) return const Center(child: CircularProgressIndicator());
-        final String shapeName = stimulus.payload['shape'] as String;
-        final double colorDistance = (stimulus.payload['colorDistance'] as num).toDouble();
-        final int seed = stimulus.payload['seed'] as int;
-        final ColorPlateShape shape = ColorPlateShape.values.firstWhere(
-          (s) => s.name == shapeName,
-          orElse: () => ColorPlateShape.none,
-        );
+        final int setSize = stimulus.payload['setSize'] as int;
+        final List<dynamic> positions = stimulus.payload['positions'] as List<dynamic>;
+        final List<dynamic> studyColors = stimulus.payload['studyColors'] as List<dynamic>;
+        final int? changeIndex = stimulus.payload['changeIndex'] as int?;
+        final int? newColor = stimulus.payload['newColor'] as int?;
+
         return Column(
           children: [
             if (controller.state.isPractice)
               Text('Practice', style: Theme.of(context).textTheme.labelLarge),
             Expanded(
-              child: Center(
-                child: SizedBox(
-                  width: 260,
-                  height: 260,
-                  child: CustomPaint(
-                    painter: ColorPlatePainter(seed: seed, shape: shape, colorDistance: colorDistance),
-                  ),
-                ),
-              ),
+              child: _stage == _MemoryStage.blank
+                  ? const SizedBox.expand()
+                  : LayoutBuilder(builder: (context, constraints) {
+                      return Stack(
+                        children: [
+                          for (int i = 0; i < setSize; i++)
+                            Positioned(
+                              left: (positions[i]['dx'] as double) * constraints.maxWidth - 24,
+                              top: (positions[i]['dy'] as double) * constraints.maxHeight - 24,
+                              child: Container(
+                                width: 48,
+                                height: 48,
+                                color: Color(
+                                  _stage == _MemoryStage.test && i == changeIndex
+                                      ? newColor!
+                                      : studyColors[i] as int,
+                                ),
+                              ),
+                            ),
+                        ],
+                      );
+                    }),
             ),
-            Wrap(
-              spacing: 8,
-              children: [
-                for (final s in ['circle', 'triangle', 'square', 'none'])
-                  FilledButton.tonal(
-                    onPressed: () => _respond(s),
-                    child: Text(s == 'none' ? 'None visible' : s),
-                  ),
-              ],
-            ),
+            if (_stage == _MemoryStage.test)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  FilledButton(onPressed: () => _respond('same'), child: const Text('Same')),
+                  FilledButton(onPressed: () => _respond('changed'), child: const Text('Changed')),
+                ],
+              )
+            else
+              Text(_stage == _MemoryStage.study ? 'Remember…' : ' ',
+                  style: Theme.of(context).textTheme.labelLarge),
             AppSpacing.gapMd,
           ],
         );
@@ -130,6 +163,7 @@ class _ColorVisionScreenState extends ConsumerState<ColorVisionScreen> {
         return const Center(child: CircularProgressIndicator());
       case TestSessionPhase.result:
         final result = controller.state.result!;
+        final double approxK = (result.scoring.metrics['approxK'] as num?)?.toDouble() ?? 0;
         return SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -137,12 +171,12 @@ class _ColorVisionScreenState extends ConsumerState<ColorVisionScreen> {
               Text('Your result', style: Theme.of(context).textTheme.headlineMedium),
               AppSpacing.gapMd,
               Text('Accuracy: ${(result.accuracy * 100).toStringAsFixed(0)}%'),
+              Text('Approximate capacity (K): ${approxK.toStringAsFixed(1)} items'),
               Text('Confidence: ${result.confidence.level.name}'),
               AppSpacing.gapMd,
               const Text(
-                'This is a screening flag, not a diagnostic color-vision test, and cannot '
-                'determine a specific type of color-vision difference. Display color rendering '
-                'varies by device. This is an educational self-assessment, not a medical diagnosis.',
+                'This is an educational self-assessment, not a diagnostic memory or cognitive '
+                'test, and the small number of trials means the estimate is approximate.',
               ),
               AppSpacing.gapLg,
               FilledButton(

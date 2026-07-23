@@ -1,5 +1,48 @@
 # Changelog
 
+## v0.2.0-beta (Phase 2 — Perception lab)
+
+Builds on the v0.1.0-alpha core screening MVP. Adds the six Phase-2 feature
+groups per Task.md §16 / spec.md Phase 2, plus personal trends and separate
+profile dimensions:
+
+- **Depth Perception**: pictorial/motion depth-cue judgment task — explicitly
+  documented as *not* a binocular stereoacuity test (a flat display cannot
+  present binocular disparity).
+- **Peripheral Awareness**: central-fixation peripheral-flash localization
+  with catch trials to flag guessing.
+- **Visual Attention**: color-odd-one-out visual search across increasing
+  distractor counts.
+- **Visual Memory**: change-detection working-memory screening with an
+  approximate Cowan's K estimate.
+- **Motion Perception**: adaptive-coherence random-dot-kinematogram
+  direction discrimination, rendered as a pure function of animation time
+  (no mutable per-frame dot state).
+- **Eye Fatigue Questionnaire**: original 5-item self-report symptom survey
+  (explicitly not a validated clinical instrument).
+- **Trends**: deterministic baseline-vs-current comparison per test
+  dimension, with confidence and neutral, non-alarmist language — never
+  combined across dimensions.
+- **Profile**: each test dimension's latest result shown independently;
+  there is no combined "vision score" or "brain score" anywhere in the app.
+
+The test-engine's adaptive-staircase support (added in Phase 1 for visual
+acuity/near vision/contrast sensitivity) is now also used by motion
+perception. An accessibility pass adds screen-reader semantics for
+optotypes and a high-contrast comparability notice across test intro
+screens; the motion-perception intro additionally flags reduced-motion
+settings, since that test cannot be meaningfully redesigned as static.
+
+### Known limitations
+- Depth Perception cannot measure true binocular stereoacuity on a single
+  flat display — see `research/stereo_depth.md`.
+- Peripheral Awareness cannot verify the user maintained central fixation.
+- The high-contrast accessibility notice is wired into the shared
+  optotype-staircase flow and all Phase-2 test intros, but was not
+  retrofitted onto every Phase-1 screen.
+- Visual Memory's Cowan's K estimate is based on very few trials per set
+  size and is explicitly labeled approximate.
+
 ## v0.1.0-alpha (Phase 1 — Core screening MVP)
 
 Builds on the v0.0.1-foundation engine/calibration/theme layer. Adds the

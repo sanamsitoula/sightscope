@@ -2,31 +2,42 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/accessibility/accessibility.dart';
 import '../../core/storage/database_provider.dart';
+import '../../shared/test_engine/widgets/accessibility_notice.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../shared/models/enums.dart';
 import '../../shared/test_engine/domain/test_session_phase.dart';
 import '../../shared/test_engine/engine/test_device_context.dart';
 import '../../shared/test_engine/engine/test_result_repository.dart';
 import '../../shared/test_engine/engine/test_session_controller.dart';
-import '../../shared/test_engine/widgets/accessibility_notice.dart';
-import 'color_plate_painter.dart';
-import 'color_vision_test_definition.dart';
+import 'motion_perception_test_definition.dart';
+import 'rdk_painter.dart';
 
-class ColorVisionScreen extends ConsumerStatefulWidget {
-  const ColorVisionScreen({super.key});
+class MotionPerceptionScreen extends ConsumerStatefulWidget {
+  const MotionPerceptionScreen({super.key});
 
   @override
-  ConsumerState<ColorVisionScreen> createState() => _ColorVisionScreenState();
+  ConsumerState<MotionPerceptionScreen> createState() => _MotionPerceptionScreenState();
 }
 
-class _ColorVisionScreenState extends ConsumerState<ColorVisionScreen> {
+class _MotionPerceptionScreenState extends ConsumerState<MotionPerceptionScreen>
+    with SingleTickerProviderStateMixin {
   TestSessionController? _controller;
+  late final AnimationController _anim =
+      AnimationController(vsync: this, duration: const Duration(milliseconds: 1500));
+  bool _playing = false;
+
+  @override
+  void dispose() {
+    _anim.dispose();
+    super.dispose();
+  }
 
   void _start() {
     final repository = TestResultRepository(ref.read(appDatabaseProvider));
     final controller = TestSessionController(
-      definition: const ColorVisionTestDefinition(),
+      definition: MotionPerceptionTestDefinition(),
       deviceContext: const TestDeviceContext(
         deviceModel: 'unknown',
         screenSize: 'unknown',
@@ -41,26 +52,41 @@ class _ColorVisionScreenState extends ConsumerState<ColorVisionScreen> {
     controller.confirmCalibration();
     controller.beginPractice();
     setState(() => _controller = controller);
+    _playTrial();
   }
 
-  void _respond(String shape) {
+  void _playTrial() {
+    setState(() => _playing = true);
+    _anim
+      ..reset()
+      ..forward().whenComplete(() {
+        if (mounted) setState(() => _playing = false);
+      });
+  }
+
+  void _respond(String direction) {
     final controller = _controller!;
-    controller.recordResponse(answer: {'shape': shape}, durationMillis: 0);
+    controller.recordResponse(answer: {'direction': direction}, durationMillis: 0);
     if (controller.isQueueExhausted) {
       if (controller.state.phase == TestSessionPhase.practice) {
         controller.beginMainTest();
-      } else if (controller.state.phase == TestSessionPhase.mainTest) {
+        setState(() {});
+        _playTrial();
+      } else {
         controller.score();
+        setState(() {});
       }
+    } else {
+      setState(() {});
+      _playTrial();
     }
-    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
     final controller = _controller;
     return Scaffold(
-      appBar: AppBar(title: const Text('Color Perception')),
+      appBar: AppBar(title: const Text('Motion Perception')),
       body: Padding(
         padding: AppSpacing.padScreen,
         child: controller == null ? _buildIntro(context) : _buildPhase(context, controller),
@@ -69,14 +95,22 @@ class _ColorVisionScreenState extends ConsumerState<ColorVisionScreen> {
   }
 
   Widget _buildIntro(BuildContext context) {
+    final bool reduceMotion = Accessibility.reduceMotion(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Identify the shape hidden in each pattern of colored dots. Choose "None visible" '
-          'if you cannot see a shape.',
+          'Watch the moving dots and indicate whether they drift mostly left or mostly right.',
           style: Theme.of(context).textTheme.bodyLarge,
         ),
+        if (reduceMotion) ...[
+          AppSpacing.gapMd,
+          const Text(
+            'Your device has reduced motion enabled. This test inherently involves motion and '
+            'cannot be shown statically — skip it if moving dot patterns are uncomfortable for '
+            'you.',
+          ),
+        ],
         const AccessibilityNotice(),
         AppSpacing.gapLg,
         FilledButton(onPressed: _start, child: const Text('Start')),
@@ -90,38 +124,46 @@ class _ColorVisionScreenState extends ConsumerState<ColorVisionScreen> {
       case TestSessionPhase.mainTest:
         final stimulus = controller.state.currentStimulus;
         if (stimulus == null) return const Center(child: CircularProgressIndicator());
-        final String shapeName = stimulus.payload['shape'] as String;
-        final double colorDistance = (stimulus.payload['colorDistance'] as num).toDouble();
+        final double coherence = (stimulus.payload['coherence'] as num).toDouble();
+        final String direction = stimulus.payload['direction'] as String;
         final int seed = stimulus.payload['seed'] as int;
-        final ColorPlateShape shape = ColorPlateShape.values.firstWhere(
-          (s) => s.name == shapeName,
-          orElse: () => ColorPlateShape.none,
-        );
         return Column(
           children: [
             if (controller.state.isPractice)
               Text('Practice', style: Theme.of(context).textTheme.labelLarge),
             Expanded(
-              child: Center(
-                child: SizedBox(
-                  width: 260,
-                  height: 260,
-                  child: CustomPaint(
-                    painter: ColorPlatePainter(seed: seed, shape: shape, colorDistance: colorDistance),
+              child: AnimatedBuilder(
+                animation: _anim,
+                builder: (context, _) => CustomPaint(
+                  size: Size.infinite,
+                  painter: RdkPainter(
+                    t: _anim.value,
+                    coherence: coherence,
+                    direction: direction,
+                    seed: seed,
                   ),
                 ),
               ),
             ),
-            Wrap(
-              spacing: 8,
-              children: [
-                for (final s in ['circle', 'triangle', 'square', 'none'])
-                  FilledButton.tonal(
-                    onPressed: () => _respond(s),
-                    child: Text(s == 'none' ? 'None visible' : s),
+            AppSpacing.gapMd,
+            if (!_playing)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  FilledButton.icon(
+                    onPressed: () => _respond('left'),
+                    icon: const Icon(Icons.arrow_back),
+                    label: const Text('Left'),
                   ),
-              ],
-            ),
+                  FilledButton.icon(
+                    onPressed: () => _respond('right'),
+                    icon: const Icon(Icons.arrow_forward),
+                    label: const Text('Right'),
+                  ),
+                ],
+              )
+            else
+              const Text('Watch…'),
             AppSpacing.gapMd,
           ],
         );
@@ -136,13 +178,12 @@ class _ColorVisionScreenState extends ConsumerState<ColorVisionScreen> {
             children: [
               Text('Your result', style: Theme.of(context).textTheme.headlineMedium),
               AppSpacing.gapMd,
-              Text('Accuracy: ${(result.accuracy * 100).toStringAsFixed(0)}%'),
+              Text('Coherence threshold: ${(result.score * 100).toStringAsFixed(0)}%'),
               Text('Confidence: ${result.confidence.level.name}'),
               AppSpacing.gapMd,
               const Text(
-                'This is a screening flag, not a diagnostic color-vision test, and cannot '
-                'determine a specific type of color-vision difference. Display color rendering '
-                'varies by device. This is an educational self-assessment, not a medical diagnosis.',
+                'This is an educational self-assessment, not a diagnostic measurement of motion '
+                'perception or visual processing.',
               ),
               AppSpacing.gapLg,
               FilledButton(
