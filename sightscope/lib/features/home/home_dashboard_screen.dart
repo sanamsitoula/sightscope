@@ -86,6 +86,11 @@ class HomeDashboardScreen extends ConsumerWidget {
                 tooltip: 'Calibrate',
                 onPressed: () => context.push('/calibration'),
               ),
+              IconButton(
+                icon: const Icon(Icons.self_improvement_outlined),
+                tooltip: 'Eye Wellness',
+                onPressed: () => context.push('/eye-wellness'),
+              ),
             ],
           ),
           SliverPadding(
@@ -97,6 +102,15 @@ class HomeDashboardScreen extends ConsumerWidget {
                   error: (e, st) => const SizedBox.shrink(),
                   data: (results) => _LastSessionCard(
                     lastDate: results.isEmpty ? null : results.first.date,
+                  ),
+                ),
+                AppSpacing.gapLg,
+                const _TestRow(
+                  entry: _TestEntry(
+                    'Eye Wellness',
+                    'Gentle reminders and a one-minute reset',
+                    '/eye-wellness',
+                    Icons.self_improvement_outlined,
                   ),
                 ),
                 AppSpacing.gapXl,

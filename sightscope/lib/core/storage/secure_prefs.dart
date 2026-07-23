@@ -42,6 +42,7 @@ class SecurePrefs {
   static const String _kDisclaimerAccepted = 'disclaimer_accepted';
   static const String _kOnboardingComplete = 'onboarding_complete';
   static const String _kCalibrationJson = 'calibration_result_json';
+  static const String _kEyeWellnessSettingsJson = 'eye_wellness_settings_json';
 
   Future<bool> getDisclaimerAccepted() async => (await _store.read(_kDisclaimerAccepted)) == 'true';
 
@@ -54,4 +55,9 @@ class SecurePrefs {
   Future<String?> getCalibrationJson() => _store.read(_kCalibrationJson);
 
   Future<void> setCalibrationJson(String json) => _store.write(_kCalibrationJson, json);
+
+  Future<String?> getEyeWellnessSettingsJson() => _store.read(_kEyeWellnessSettingsJson);
+
+  Future<void> setEyeWellnessSettingsJson(String json) =>
+      _store.write(_kEyeWellnessSettingsJson, json);
 }

@@ -273,7 +273,7 @@ full-width "Continue". Implemented fully in the shared
 `StaircaseOptotypeFlowScreen._ResultView` (visual acuity, near vision,
 contrast sensitivity) and reaction time; the remaining Phase-2 result
 screens share the same token set but not yet the full metric/overline
-layout (see §11).
+layout (see §12).
 
 ### Test stimulus screens
 The brand deliberately disappears during measurement — flat `stimulusPaper`
@@ -283,7 +283,41 @@ should feel precise, neutral, and scientifically controlled."
 
 ---
 
-## 11. Known gaps / next design opportunities
+## 11. EyeGuard (eye wellness)
+
+**Files:** `lib/features/eye_wellness/` — `domain/eye_exercise_engine.dart`
+(the "One-Minute Reset" guided exercise, a fixed step sequence),
+`domain/reminder_engine.dart` (deterministic, unit-tested threshold rules —
+no AI, matching ai.md's "deterministic first" principle),
+`domain/screen_session_tracker.dart` (continuous in-app foreground timer),
+`data/eye_wellness_settings*.dart` (persisted preferences, same
+secure-storage pattern as calibration), `presentation/*` (the dashboard,
+settings screen, and the exercise player, which reuses the Deep Ink +
+overline + metric result language from §10).
+
+**Deliberate scope limit — read before extending this feature:** the
+original EyeGuard spec assumed cross-app, system-wide screen-time tracking
+("You spent 42 minutes on YouTube"). That isn't implemented, and can't be
+implemented the same way on every platform:
+- **iOS** has no public API for third-party apps to read system-wide app
+  usage. Apple restricts that data to parental-control apps under a
+  Family Controls entitlement it grants selectively — not available to an
+  app like this one.
+- **Android** can do it, but only via the `PACKAGE_USAGE_STATS`
+  permission (which the user must manually grant in Settings — it has no
+  runtime permission dialog) plus a new plugin dependency — both are
+  stop-conditions requiring explicit sign-off before adding.
+- Local notifications (for reminders while the app isn't open) need
+  `flutter_local_notifications`, also unapproved.
+- Camera-based blink detection remains explicitly future/Phase-5 and
+  AI-gated (ai.md AI-04) — not implemented.
+
+What ships instead is honestly scoped to **SightScope's own in-app
+foreground time**, tracked via `WidgetsBindingObserver` with zero new
+dependencies or permissions, and the settings/result copy says so
+explicitly rather than implying broader tracking than exists.
+
+## 12. Known gaps / next design opportunities
 
 - The full `metric`/overline result layout is implemented on the shared
   acuity-family flow and reaction time; color vision, peripheral vision,

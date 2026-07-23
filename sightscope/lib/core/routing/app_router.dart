@@ -4,6 +4,9 @@ import '../../features/color_vision/color_vision_screen.dart';
 import '../../features/contrast_sensitivity/contrast_sensitivity_screen.dart';
 import '../../features/education/education_screen.dart';
 import '../../features/eye_fatigue/eye_fatigue_screen.dart';
+import '../../features/eye_wellness/presentation/eye_wellness_dashboard.dart';
+import '../../features/eye_wellness/presentation/eye_wellness_settings_screen.dart';
+import '../../features/eye_wellness/presentation/one_minute_reset_screen.dart';
 import '../../features/history/history_screen.dart';
 import '../../features/motion_perception/motion_perception_screen.dart';
 import '../../features/near_vision/near_vision_screen.dart';
@@ -56,6 +59,15 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => const MotionPerceptionScreen(),
     ),
     GoRoute(path: '/tests/eye-fatigue', builder: (context, state) => const EyeFatigueScreen()),
+    GoRoute(path: '/eye-wellness', builder: (context, state) => const EyeWellnessDashboard()),
+    GoRoute(
+      path: '/eye-wellness/reset',
+      builder: (context, state) => const OneMinuteResetScreen(),
+    ),
+    GoRoute(
+      path: '/eye-wellness/settings',
+      builder: (context, state) => const EyeWellnessSettingsScreen(),
+    ),
     GoRoute(path: '/dummy-test', builder: (context, state) => const DummyTestScreen()),
   ],
 );
