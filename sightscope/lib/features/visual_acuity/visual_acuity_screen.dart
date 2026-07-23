@@ -9,6 +9,8 @@ class VisualAcuityScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StaircaseOptotypeFlowScreen(
+      testId: 'visual_acuity',
+      title: 'Visual Acuity',
       definitionBuilder: ({required viewingDistanceMm, required ppi}) => AcuityTestDefinition(
         id: 'visual_acuity',
         version: '1.0.0',

@@ -9,6 +9,8 @@ class NearVisionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StaircaseOptotypeFlowScreen(
+      testId: 'near_vision',
+      title: 'Near Vision & Reading',
       definitionBuilder: ({required viewingDistanceMm, required ppi}) => AcuityTestDefinition(
         id: 'near_vision',
         version: '1.0.0',

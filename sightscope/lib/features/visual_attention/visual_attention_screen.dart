@@ -10,6 +10,7 @@ import '../../shared/test_engine/engine/test_device_context.dart';
 import '../../shared/test_engine/engine/test_result_repository.dart';
 import '../../shared/test_engine/engine/test_session_controller.dart';
 import '../../shared/test_engine/widgets/accessibility_notice.dart';
+import '../../shared/widgets/test_purpose_card.dart';
 import 'visual_attention_test_definition.dart';
 
 class VisualAttentionScreen extends ConsumerStatefulWidget {
@@ -80,6 +81,7 @@ class _VisualAttentionScreenState extends ConsumerState<VisualAttentionScreen> {
           'Tap the circle that is a different color from the others, as quickly as you can.',
           style: Theme.of(context).textTheme.bodyLarge,
         ),
+        const TestPurposeCard(testId: 'visual_attention'),
         const AccessibilityNotice(),
         AppSpacing.gapLg,
         FilledButton(onPressed: _start, child: const Text('Start')),

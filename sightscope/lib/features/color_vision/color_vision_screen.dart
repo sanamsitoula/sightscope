@@ -10,6 +10,7 @@ import '../../shared/test_engine/engine/test_device_context.dart';
 import '../../shared/test_engine/engine/test_result_repository.dart';
 import '../../shared/test_engine/engine/test_session_controller.dart';
 import '../../shared/test_engine/widgets/accessibility_notice.dart';
+import '../../shared/widgets/test_purpose_card.dart';
 import 'color_plate_painter.dart';
 import 'color_vision_test_definition.dart';
 
@@ -77,6 +78,7 @@ class _ColorVisionScreenState extends ConsumerState<ColorVisionScreen> {
           'if you cannot see a shape.',
           style: Theme.of(context).textTheme.bodyLarge,
         ),
+        const TestPurposeCard(testId: 'color_vision'),
         const AccessibilityNotice(),
         AppSpacing.gapLg,
         FilledButton(onPressed: _start, child: const Text('Start')),

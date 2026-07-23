@@ -12,6 +12,7 @@ import '../../shared/test_engine/engine/test_result_repository.dart';
 import '../../shared/test_engine/engine/test_session_controller.dart';
 import '../../shared/test_engine/widgets/accessibility_notice.dart';
 import '../../shared/test_engine/widgets/orientation_response_pad.dart';
+import '../../shared/widgets/test_purpose_card.dart';
 import 'peripheral_vision_test_definition.dart';
 
 const Map<int, String> _kOrientationToQuadrant = {0: 'right', 90: 'up', 180: 'left', 270: 'down'};
@@ -139,6 +140,7 @@ class _PeripheralVisionScreenState extends ConsumerState<PeripheralVisionScreen>
           'matching arrow. Some trials have no flash — leave those alone.',
           style: Theme.of(context).textTheme.bodyLarge,
         ),
+        const TestPurposeCard(testId: 'peripheral_vision'),
         const AccessibilityNotice(),
         AppSpacing.gapLg,
         FilledButton(onPressed: _start, child: const Text('Start')),

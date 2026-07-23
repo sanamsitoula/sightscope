@@ -9,6 +9,8 @@ class ContrastSensitivityScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StaircaseOptotypeFlowScreen(
+      testId: 'contrast_sensitivity',
+      title: 'Contrast Sensitivity',
       definitionBuilder: ({required viewingDistanceMm, required ppi}) =>
           ContrastSensitivityTestDefinition(viewingDistanceMm: viewingDistanceMm, ppi: ppi),
       introText:

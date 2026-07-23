@@ -11,6 +11,7 @@ import '../../shared/test_engine/engine/test_device_context.dart';
 import '../../shared/test_engine/engine/test_result_repository.dart';
 import '../../shared/test_engine/engine/test_session_controller.dart';
 import '../../shared/test_engine/widgets/accessibility_notice.dart';
+import '../../shared/widgets/test_purpose_card.dart';
 import 'depth_perception_test_definition.dart';
 
 class DepthPerceptionScreen extends ConsumerStatefulWidget {
@@ -77,6 +78,7 @@ class _DepthPerceptionScreenState extends ConsumerState<DepthPerceptionScreen> {
           'screen, not true binocular stereo depth.',
           style: Theme.of(context).textTheme.bodyLarge,
         ),
+        const TestPurposeCard(testId: 'depth_perception'),
         const AccessibilityNotice(),
         AppSpacing.gapLg,
         FilledButton(onPressed: _start, child: const Text('Start')),

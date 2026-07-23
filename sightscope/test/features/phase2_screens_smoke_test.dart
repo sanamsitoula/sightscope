@@ -33,7 +33,8 @@ void main() {
   testWidgets('DepthPerceptionScreen shows intro then a trial', (tester) async {
     await tester.pumpWidget(_harness(const DepthPerceptionScreen(), db));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Start'));
+    await tester.ensureVisible(find.text('Start'));
+    await tester.tap(find.text('Start'), warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byType(GestureDetector), findsWidgets);
   });
@@ -47,7 +48,8 @@ void main() {
   testWidgets('VisualAttentionScreen shows intro then trial targets', (tester) async {
     await tester.pumpWidget(_harness(const VisualAttentionScreen(), db));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Start'));
+    await tester.ensureVisible(find.text('Start'));
+    await tester.tap(find.text('Start'), warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byType(GestureDetector), findsWidgets);
   });
@@ -55,7 +57,8 @@ void main() {
   testWidgets('VisualMemoryScreen shows intro then study stage', (tester) async {
     await tester.pumpWidget(_harness(const VisualMemoryScreen(), db));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Start'));
+    await tester.ensureVisible(find.text('Start'));
+    await tester.tap(find.text('Start'), warnIfMissed: false);
     await tester.pump();
     expect(find.text('Remember…'), findsOneWidget);
     await tester.pump(const Duration(milliseconds: 2600));
@@ -64,7 +67,8 @@ void main() {
   testWidgets('MotionPerceptionScreen shows intro then plays a trial', (tester) async {
     await tester.pumpWidget(_harness(const MotionPerceptionScreen(), db));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Start'));
+    await tester.ensureVisible(find.text('Start'));
+    await tester.tap(find.text('Start'), warnIfMissed: false);
     await tester.pump();
     expect(find.text('Watch…'), findsOneWidget);
     await tester.pump(const Duration(milliseconds: 1600));
@@ -73,7 +77,8 @@ void main() {
   testWidgets('EyeFatigueScreen shows intro then first question', (tester) async {
     await tester.pumpWidget(_harness(const EyeFatigueScreen(), db));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Start'));
+    await tester.ensureVisible(find.text('Start'));
+    await tester.tap(find.text('Start'), warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.text('Never'), findsOneWidget);
   });

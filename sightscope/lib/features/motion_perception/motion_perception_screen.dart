@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/accessibility/accessibility.dart';
 import '../../core/storage/database_provider.dart';
 import '../../shared/test_engine/widgets/accessibility_notice.dart';
+import '../../shared/widgets/test_purpose_card.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../shared/models/enums.dart';
 import '../../shared/test_engine/domain/test_session_phase.dart';
@@ -111,6 +112,7 @@ class _MotionPerceptionScreenState extends ConsumerState<MotionPerceptionScreen>
             'you.',
           ),
         ],
+        const TestPurposeCard(testId: 'motion_perception'),
         const AccessibilityNotice(),
         AppSpacing.gapLg,
         FilledButton(onPressed: _start, child: const Text('Start')),

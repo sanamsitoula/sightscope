@@ -14,6 +14,9 @@ import '../domain/test_session_phase.dart';
 import '../engine/test_device_context.dart';
 import '../engine/test_result_repository.dart';
 import '../engine/test_session_controller.dart';
+import '../../widgets/gradient_hero_header.dart';
+import '../../widgets/how_to_carousel.dart';
+import '../../widgets/test_purpose_card.dart';
 import '../widgets/accessibility_notice.dart';
 import '../widgets/optotype_painter.dart';
 import '../widgets/orientation_response_pad.dart';
@@ -26,10 +29,17 @@ import '../widgets/orientation_response_pad.dart';
 class StaircaseOptotypeFlowScreen extends ConsumerStatefulWidget {
   const StaircaseOptotypeFlowScreen({
     super.key,
+    required this.testId,
+    required this.title,
     required this.definitionBuilder,
     required this.introText,
     required this.limitationsText,
   });
+
+  /// Matches [TestDefinition.id] — used to look up purpose-card copy and
+  /// show a consistent title.
+  final String testId;
+  final String title;
 
   /// Builds a fresh [TestDefinition] given the calibrated viewing distance
   /// and PPI. Called once per session start.
@@ -92,27 +102,26 @@ class _StaircaseOptotypeFlowScreenState extends ConsumerState<StaircaseOptotypeF
     final calibrationAsync = ref.watch(calibrationProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Test')),
-      body: Padding(
-        padding: AppSpacing.padScreen,
-        child: calibrationAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, st) => Center(child: Text('Calibration error: $e')),
-          data: (calibration) {
-            final controller = _controller;
-            if (controller == null) {
-              return _IntroView(
-                introText: widget.introText,
-                calibrated: calibration != null,
-                onStart: () => _startSession(
-                  calibration?.viewingDistanceMm ?? 400,
-                  calibration?.ppi ?? 400,
-                ),
-              );
-            }
-            return _buildForPhase(controller);
-          },
-        ),
+      appBar: AppBar(title: Text(widget.title)),
+      body: calibrationAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, st) => Center(child: Text('Calibration error: $e')),
+        data: (calibration) {
+          final controller = _controller;
+          if (controller == null) {
+            return _IntroView(
+              testId: widget.testId,
+              title: widget.title,
+              introText: widget.introText,
+              calibrated: calibration != null,
+              onStart: () => _startSession(
+                calibration?.viewingDistanceMm ?? 400,
+                calibration?.ppi ?? 400,
+              ),
+            );
+          }
+          return Padding(padding: AppSpacing.padScreen, child: _buildForPhase(controller));
+        },
       ),
     );
   }
@@ -167,30 +176,60 @@ class _StaircaseOptotypeFlowScreenState extends ConsumerState<StaircaseOptotypeF
   }
 }
 
-class _IntroView extends StatelessWidget {
-  const _IntroView({required this.introText, required this.calibrated, required this.onStart});
+const List<HowToStep> _kOptotypeHowTo = [
+  HowToStep(icon: Icons.visibility_off_outlined, label: 'Cover one eye if asked to test them separately'),
+  HowToStep(icon: Icons.straighten, label: 'Hold your device at the suggested distance'),
+  HowToStep(icon: Icons.touch_app_outlined, label: 'Tap the arrow that matches the shape'),
+];
 
+class _IntroView extends StatelessWidget {
+  const _IntroView({
+    required this.testId,
+    required this.title,
+    required this.introText,
+    required this.calibrated,
+    required this.onStart,
+  });
+
+  final String testId;
+  final String title;
   final String introText;
   final bool calibrated;
   final VoidCallback onStart;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(introText, style: Theme.of(context).textTheme.bodyLarge),
-        const AccessibilityNotice(),
-        AppSpacing.gapMd,
-        if (!calibrated)
-          Text(
-            'Using an approximate default calibration. For a more accurate result, '
-            'calibrate your screen from Settings first.',
-            style: Theme.of(context).textTheme.bodyMedium,
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          GradientHeroHeader(title: title, subtitle: introText, compact: true),
+          Padding(
+            padding: AppSpacing.padScreen,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TestPurposeCard(testId: testId),
+                AppSpacing.gapMd,
+                const HowToCarousel(steps: _kOptotypeHowTo),
+                const AccessibilityNotice(),
+                AppSpacing.gapMd,
+                if (!calibrated)
+                  Text(
+                    'Using an approximate default calibration. For a more accurate result, '
+                    'calibrate your screen from Settings first.',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                AppSpacing.gapLg,
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(onPressed: onStart, child: const Text('Start')),
+                ),
+              ],
+            ),
           ),
-        AppSpacing.gapLg,
-        FilledButton(onPressed: onStart, child: const Text('Start')),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -271,13 +310,27 @@ class _TrialView extends StatelessWidget {
         if (isPractice) Text('Practice', style: Theme.of(context).textTheme.labelLarge),
         Expanded(
           child: Center(
-            child: OptotypeView(
-              shape: shape == 'E' ? OptotypeShape.tumblingE : OptotypeShape.landoltC,
-              heightPx: heightPx.clamp(24, 320),
-              strokePx: strokePx.clamp(4, 100),
-              orientationDeg: orientation,
-              ink: ink,
-              paper: AppColors.stimulusPaper,
+            child: Container(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              decoration: BoxDecoration(
+                color: AppColors.stimulusPaper,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.08),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: OptotypeView(
+                shape: shape == 'E' ? OptotypeShape.tumblingE : OptotypeShape.landoltC,
+                heightPx: heightPx.clamp(24, 320),
+                strokePx: strokePx.clamp(4, 100),
+                orientationDeg: orientation,
+                ink: ink,
+                paper: AppColors.stimulusPaper,
+              ),
             ),
           ),
         ),

@@ -41,7 +41,8 @@ void main() {
     await tester.pumpWidget(_harness(const VisualAcuityScreen(), db));
     await tester.pumpAndSettle();
     expect(find.text('Start'), findsOneWidget);
-    await tester.tap(find.text('Start'));
+    await tester.ensureVisible(find.text('Start'));
+    await tester.tap(find.text('Start'), warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.text('Continue'), findsOneWidget); // instructions phase
   });
@@ -61,7 +62,8 @@ void main() {
   testWidgets('ColorVisionScreen shows intro then a plate', (tester) async {
     await tester.pumpWidget(_harness(const ColorVisionScreen(), db));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Start'));
+    await tester.ensureVisible(find.text('Start'));
+    await tester.tap(find.text('Start'), warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.text('None visible'), findsOneWidget);
   });
@@ -69,7 +71,8 @@ void main() {
   testWidgets('ReactionTimeScreen shows intro then waiting state', (tester) async {
     await tester.pumpWidget(_harness(const ReactionTimeScreen(), db));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Start'));
+    await tester.ensureVisible(find.text('Start'));
+    await tester.tap(find.text('Start'), warnIfMissed: false);
     await tester.pump();
     expect(find.textContaining('Wait'), findsOneWidget);
     // Flush the pending stimulus-onset timer so it doesn't leak into other tests.
