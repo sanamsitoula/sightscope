@@ -1,9 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
+import '../data/eye_wellness_providers.dart';
 import '../data/eye_wellness_settings.dart';
 import '../data/eye_wellness_settings_provider.dart';
 
@@ -13,6 +16,8 @@ class EyeWellnessSettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settingsAsync = ref.watch(eyeWellnessSettingsProvider);
+    final usageGrantedAsync = ref.watch(usageAccessGrantedProvider);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Eye Wellness')),
       body: settingsAsync.when(
@@ -25,8 +30,9 @@ class EyeWellnessSettingsScreen extends ConsumerWidget {
               title: const Text('Eye wellness reminders'),
               subtitle: const Text('Gentle nudges when a session runs long'),
               value: settings.remindersEnabled,
-              onChanged: (v) =>
-                  ref.read(eyeWellnessSettingsProvider.notifier).updateSettings((s) => s.copyWith(remindersEnabled: v)),
+              onChanged: (v) => ref
+                  .read(eyeWellnessSettingsProvider.notifier)
+                  .updateSettings((s) => s.copyWith(remindersEnabled: v)),
             ),
             SwitchListTile(
               title: const Text('Blink reminders'),
@@ -59,9 +65,69 @@ class EyeWellnessSettingsScreen extends ConsumerWidget {
                     .updateSettings((current) => current.copyWith(sensitivity: v)),
               ),
             AppSpacing.gapLg,
+            const Divider(height: 1),
+            AppSpacing.gapLg,
+            Text('DEVICE PERMISSIONS', style: AppTypography.overline.copyWith(color: AppColors.sage)),
             SwitchListTile(
-              title: const Text('Camera blink detection'),
-              subtitle: const Text('Not available yet — planned as an explicit-consent future feature'),
+              title: const Text('Notifications'),
+              subtitle: const Text('Also post a system notification when a reminder is due'),
+              value: settings.enableNotifications,
+              onChanged: (v) async {
+                if (v) {
+                  final granted = await ref.read(notificationServiceProvider).requestPermission();
+                  if (!granted) return;
+                }
+                await ref
+                    .read(eyeWellnessSettingsProvider.notifier)
+                    .updateSettings((s) => s.copyWith(enableNotifications: v));
+              },
+            ),
+            SwitchListTile(
+              title: const Text('App usage insights'),
+              subtitle: Text(
+                Platform.isAndroid
+                    ? 'Shows today\'s most-used apps. Requires the Android "Usage access" '
+                        'setting — you\'ll be sent to Settings to grant it.'
+                    : 'Not available on this device — iOS does not provide apps access to '
+                        'system-wide usage data.',
+              ),
+              value: settings.showAppSpecificInsights,
+              onChanged: Platform.isAndroid
+                  ? (v) async {
+                      if (v) {
+                        final granted = await ref.read(appUsageDataSourceProvider).hasPermission();
+                        if (!granted) {
+                          await ref.read(appUsageDataSourceProvider).openPermissionSettings();
+                          ref.invalidate(usageAccessGrantedProvider);
+                        }
+                      }
+                      await ref
+                          .read(eyeWellnessSettingsProvider.notifier)
+                          .updateSettings((s) => s.copyWith(showAppSpecificInsights: v));
+                    }
+                  : null,
+            ),
+            if (settings.showAppSpecificInsights && Platform.isAndroid)
+              usageGrantedAsync.when(
+                loading: () => const SizedBox.shrink(),
+                error: (e, st) => const SizedBox.shrink(),
+                data: (granted) => granted
+                    ? const SizedBox.shrink()
+                    : Padding(
+                        padding: const EdgeInsets.only(left: AppSpacing.md, bottom: AppSpacing.sm),
+                        child: TextButton(
+                          onPressed: () async {
+                            await ref.read(appUsageDataSourceProvider).openPermissionSettings();
+                            ref.invalidate(usageAccessGrantedProvider);
+                          },
+                          child: const Text('Open usage access settings'),
+                        ),
+                      ),
+              ),
+            AppSpacing.gapLg,
+            const SwitchListTile(
+              title: Text('Camera blink detection'),
+              subtitle: Text('Not available yet — planned as an explicit-consent future feature'),
               value: false,
               onChanged: null,
             ),
@@ -72,10 +138,10 @@ class EyeWellnessSettingsScreen extends ConsumerWidget {
                 color: AppColors.softSage,
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: Text(
-                'These reminders are based on time spent in SightScope itself, not other apps. '
-                'System-wide screen-time tracking would need extra device permissions and, on '
-                'iOS, is not available to apps like this one at all.',
+              child: const Text(
+                'Reminders are based on time spent in SightScope itself. App usage insights, '
+                'if enabled, only read how long apps ran in the foreground today — never their '
+                'content — and stay on this device.',
                 style: AppTypography.secondary,
               ),
             ),

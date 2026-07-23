@@ -11,6 +11,7 @@ import '../../features/history/history_screen.dart';
 import '../../features/motion_perception/motion_perception_screen.dart';
 import '../../features/near_vision/near_vision_screen.dart';
 import '../../features/onboarding/calibration_screen.dart';
+import '../../features/onboarding/privacy_screen.dart';
 import '../../features/peripheral_vision/peripheral_vision_screen.dart';
 import '../../features/profile/profile_screen.dart';
 import '../../features/reaction_time/reaction_time_screen.dart';
@@ -29,6 +30,7 @@ final GoRouter appRouter = GoRouter(
   routes: [
     GoRoute(path: '/', builder: (context, state) => const StartupGate()),
     GoRoute(path: '/calibration', builder: (context, state) => const CalibrationScreen()),
+    GoRoute(path: '/privacy', builder: (context, state) => const PrivacyScreen()),
     GoRoute(path: '/history', builder: (context, state) => const HistoryScreen()),
     GoRoute(path: '/education', builder: (context, state) => const EducationScreen()),
     GoRoute(path: '/trends', builder: (context, state) => const TrendsScreen()),

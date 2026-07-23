@@ -42,6 +42,12 @@ void main() {
     await tester.tap(find.byKey(const Key('disclaimer_accept_button')));
     await tester.pumpAndSettle();
 
+    // Second onboarding step: the data-collection consent screen.
+    expect(find.text('Your data, on your terms'), findsOneWidget);
+    await tester.ensureVisible(find.byKey(const Key('data_permission_allow_button')));
+    await tester.tap(find.byKey(const Key('data_permission_allow_button')));
+    await tester.pumpAndSettle();
+
     expect(find.text('Visual Acuity'), findsOneWidget);
     expect(find.text('Contrast Sensitivity'), findsOneWidget);
     expect(find.text('Color Perception'), findsOneWidget);

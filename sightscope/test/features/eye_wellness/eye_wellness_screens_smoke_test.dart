@@ -41,12 +41,22 @@ void main() {
   });
 
   testWidgets('EyeWellnessSettingsScreen renders toggles and sensitivity options', (tester) async {
+    // Tall enough that the whole settings list (including the device
+    // permissions section) is built by the ListView, not clipped by the
+    // default 800x600 test viewport.
+    tester.view.physicalSize = const Size(1080, 2600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
     await tester.pumpWidget(_harness(const EyeWellnessSettingsScreen()));
     await tester.pumpAndSettle();
 
     expect(find.text('Eye wellness reminders'), findsOneWidget);
     expect(find.text('Blink reminders'), findsOneWidget);
     expect(find.text('Balanced'), findsOneWidget);
+    expect(find.text('Notifications'), findsOneWidget);
+    expect(find.text('App usage insights'), findsOneWidget);
     expect(find.text('Camera blink detection'), findsOneWidget);
   });
 }

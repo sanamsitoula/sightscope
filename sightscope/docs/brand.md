@@ -286,36 +286,53 @@ should feel precise, neutral, and scientifically controlled."
 ## 11. EyeGuard (eye wellness)
 
 **Files:** `lib/features/eye_wellness/` — `domain/eye_exercise_engine.dart`
-(the "One-Minute Reset" guided exercise, a fixed step sequence),
-`domain/reminder_engine.dart` (deterministic, unit-tested threshold rules —
-no AI, matching ai.md's "deterministic first" principle),
-`domain/screen_session_tracker.dart` (continuous in-app foreground timer),
-`data/eye_wellness_settings*.dart` (persisted preferences, same
-secure-storage pattern as calibration), `presentation/*` (the dashboard,
-settings screen, and the exercise player, which reuses the Deep Ink +
-overline + metric result language from §10).
+(the "One-Minute Reset" guided exercise), `domain/reminder_engine.dart`
+(deterministic, unit-tested threshold rules — no AI, matching ai.md's
+"deterministic first" principle), `domain/screen_session_tracker.dart`
+(continuous in-app foreground timer), `domain/app_usage_analyzer.dart`
+(deterministic summary over raw usage entries), `data/eye_wellness_settings*.dart`
+(persisted preferences, same secure-storage pattern as calibration),
+`data/notification_service.dart` (`flutter_local_notifications` wrapper),
+`data/app_usage_datasource.dart` (`usage_stats` wrapper, Android-only),
+`presentation/*` (dashboard, settings, and the exercise player, reusing the
+Deep Ink + overline + metric result language from §10).
 
-**Deliberate scope limit — read before extending this feature:** the
-original EyeGuard spec assumed cross-app, system-wide screen-time tracking
-("You spent 42 minutes on YouTube"). That isn't implemented, and can't be
-implemented the same way on every platform:
-- **iOS** has no public API for third-party apps to read system-wide app
-  usage. Apple restricts that data to parental-control apps under a
-  Family Controls entitlement it grants selectively — not available to an
-  app like this one.
-- **Android** can do it, but only via the `PACKAGE_USAGE_STATS`
-  permission (which the user must manually grant in Settings — it has no
-  runtime permission dialog) plus a new plugin dependency — both are
-  stop-conditions requiring explicit sign-off before adding.
-- Local notifications (for reminders while the app isn't open) need
-  `flutter_local_notifications`, also unapproved.
-- Camera-based blink detection remains explicitly future/Phase-5 and
-  AI-gated (ai.md AI-04) — not implemented.
+**Dependencies added:** `flutter_local_notifications`, `permission_handler`,
+`usage_stats` — approved explicitly by the user before adding (Task.md's
+dependency stop-condition). Android manifest additions:
+`POST_NOTIFICATIONS` (Android 13+, requested at runtime via
+`permission_handler` only when the user turns Notifications on) and
+`PACKAGE_USAGE_STATS` (a "special access" permission with **no runtime
+dialog** — the user must grant it from Settings; the app links there
+directly when App Usage Insights is turned on). `android/app/build.gradle.kts`
+also needed `isCoreLibraryDesugaringEnabled = true` +
+`coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:...")`, which
+`flutter_local_notifications` requires.
 
-What ships instead is honestly scoped to **SightScope's own in-app
-foreground time**, tracked via `WidgetsBindingObserver` with zero new
-dependencies or permissions, and the settings/result copy says so
-explicitly rather than implying broader tracking than exists.
+**What's genuinely implemented now:**
+- Deterministic reminders (blink/relaxation, sensitivity-adjustable) shown
+  in-app, and optionally as a system notification if the user opts in.
+- The guided One-Minute Reset exercise.
+- **Android-only** "today's screen time" insights via `usage_stats`
+  (`UsageStatsManager`) — top apps by foreground time, only after the user
+  explicitly grants "Usage access" in system Settings. Off by default.
+- All of the above stay on-device; nothing is uploaded anywhere.
+
+**Still a hard platform limit, not a missing dependency:** iOS has **no
+public API** for third-party apps to read system-wide app usage — Apple
+restricts that to parental-control apps under a Family Controls
+entitlement it grants selectively. `AppUsageDataSource.isSupported` is
+`false` on iOS and every call site checks `Platform.isAndroid` before
+showing usage-insight UI; the settings screen states this directly rather
+than showing a broken/empty feature. Camera-based blink detection remains
+explicitly future/Phase-5 and AI-gated (ai.md AI-04) — not implemented.
+
+**Windows build note:** `usage_stats`'s Android Gradle module isn't
+migrated to Flutter's "Built-in Kotlin" yet (a build-time warning, not a
+failure) and its Kotlin compilation can hit a Windows-only incremental-cache
+bug (`Storage for [...] is already registered`). Fixed here via
+`kotlin.incremental=false` in `android/gradle.properties` — if this
+package is ever swapped out, that workaround can likely be removed.
 
 ## 12. Known gaps / next design opportunities
 

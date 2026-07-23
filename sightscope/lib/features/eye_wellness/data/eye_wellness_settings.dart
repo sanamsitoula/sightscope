@@ -1,5 +1,5 @@
 /// How eagerly reminders are surfaced. Adjusts the thresholds in
-/// [EyeWellnessSettings.thresholdsForSensitivity].
+/// [EyeWellnessSettings.thresholds].
 enum ReminderSensitivity { gentle, balanced, frequent }
 
 /// User-configurable eye-wellness preferences (EyeGuard spec §3/§15).
@@ -13,24 +13,41 @@ class EyeWellnessSettings {
     this.remindersEnabled = true,
     this.blinkRemindersEnabled = true,
     this.relaxationRemindersEnabled = true,
+    this.enableNotifications = false,
+    this.showAppSpecificInsights = false,
     this.sensitivity = ReminderSensitivity.balanced,
   });
 
   final bool remindersEnabled;
   final bool blinkRemindersEnabled;
   final bool relaxationRemindersEnabled;
+
+  /// Whether reminders may also post a system notification (in addition to
+  /// the in-app card). Off by default — this is an extra permission ask,
+  /// never turned on silently.
+  final bool enableNotifications;
+
+  /// Whether the dashboard may show per-app usage insights. Off by
+  /// default — enabling it prompts the Android-only "Usage access"
+  /// Settings screen; see [AppUsageDataSource].
+  final bool showAppSpecificInsights;
+
   final ReminderSensitivity sensitivity;
 
   EyeWellnessSettings copyWith({
     bool? remindersEnabled,
     bool? blinkRemindersEnabled,
     bool? relaxationRemindersEnabled,
+    bool? enableNotifications,
+    bool? showAppSpecificInsights,
     ReminderSensitivity? sensitivity,
   }) {
     return EyeWellnessSettings(
       remindersEnabled: remindersEnabled ?? this.remindersEnabled,
       blinkRemindersEnabled: blinkRemindersEnabled ?? this.blinkRemindersEnabled,
       relaxationRemindersEnabled: relaxationRemindersEnabled ?? this.relaxationRemindersEnabled,
+      enableNotifications: enableNotifications ?? this.enableNotifications,
+      showAppSpecificInsights: showAppSpecificInsights ?? this.showAppSpecificInsights,
       sensitivity: sensitivity ?? this.sensitivity,
     );
   }
@@ -39,6 +56,8 @@ class EyeWellnessSettings {
         'remindersEnabled': remindersEnabled,
         'blinkRemindersEnabled': blinkRemindersEnabled,
         'relaxationRemindersEnabled': relaxationRemindersEnabled,
+        'enableNotifications': enableNotifications,
+        'showAppSpecificInsights': showAppSpecificInsights,
         'sensitivity': sensitivity.name,
       };
 
@@ -46,6 +65,8 @@ class EyeWellnessSettings {
         remindersEnabled: json['remindersEnabled'] as bool? ?? true,
         blinkRemindersEnabled: json['blinkRemindersEnabled'] as bool? ?? true,
         relaxationRemindersEnabled: json['relaxationRemindersEnabled'] as bool? ?? true,
+        enableNotifications: json['enableNotifications'] as bool? ?? false,
+        showAppSpecificInsights: json['showAppSpecificInsights'] as bool? ?? false,
         sensitivity: ReminderSensitivity.values.firstWhere(
           (s) => s.name == json['sensitivity'],
           orElse: () => ReminderSensitivity.balanced,

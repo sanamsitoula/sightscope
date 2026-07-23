@@ -91,6 +91,11 @@ class HomeDashboardScreen extends ConsumerWidget {
                 tooltip: 'Eye Wellness',
                 onPressed: () => context.push('/eye-wellness'),
               ),
+              IconButton(
+                icon: const Icon(Icons.privacy_tip_outlined),
+                tooltip: 'Privacy & Data',
+                onPressed: () => context.push('/privacy'),
+              ),
             ],
           ),
           SliverPadding(
