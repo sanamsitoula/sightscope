@@ -102,25 +102,34 @@ class TestSessionController {
     if (_state.phase != TestSessionPhase.practice) {
       _transitionTo(TestSessionPhase.practice);
     }
-    _queue = definition.buildPracticeStimuli();
-    _queueIndex = 0;
-    _state = _state.copyWith(
-      isPractice: true,
-      currentStimulus: _queue.isEmpty ? null : _queue.first,
-    );
+    _practiceResponses.clear();
+    TestStimulus? first;
+    if (definition.isAdaptive) {
+      _queue = const <TestStimulus>[];
+      first = definition.nextAdaptiveStimulus(isPractice: true, responsesSoFar: const []);
+    } else {
+      _queue = definition.buildPracticeStimuli();
+      _queueIndex = 0;
+      first = _queue.isEmpty ? null : _queue.first;
+    }
+    _state = _state.copyWith(isPractice: true, currentStimulus: first);
   }
 
   void beginMainTest() {
     _transitionTo(TestSessionPhase.mainTest);
-    _queue = definition.buildMainStimuli();
-    _queueIndex = 0;
-    _state = _state.copyWith(
-      isPractice: false,
-      currentStimulus: _queue.isEmpty ? null : _queue.first,
-    );
+    TestStimulus? first;
+    if (definition.isAdaptive) {
+      _queue = const <TestStimulus>[];
+      first = definition.nextAdaptiveStimulus(isPractice: false, responsesSoFar: const []);
+    } else {
+      _queue = definition.buildMainStimuli();
+      _queueIndex = 0;
+      first = _queue.isEmpty ? null : _queue.first;
+    }
+    _state = _state.copyWith(isPractice: false, currentStimulus: first);
   }
 
-  /// Record a response to the current stimulus and advance the queue.
+  /// Record a response to the current stimulus and advance to the next one.
   ///
   /// Practice responses are evaluated but never scored or persisted.
   TestResponse recordResponse({
@@ -139,14 +148,23 @@ class TestSessionController {
       answer: answer,
       durationMillis: durationMillis,
     );
-    if (_state.isPractice) {
+    final bool isPractice = _state.isPractice;
+    if (isPractice) {
       _practiceResponses.add(response);
     } else {
       _mainResponses.add(response);
     }
 
-    _queueIndex++;
-    final TestStimulus? next = _queueIndex < _queue.length ? _queue[_queueIndex] : null;
+    final TestStimulus? next;
+    if (definition.isAdaptive) {
+      next = definition.nextAdaptiveStimulus(
+        isPractice: isPractice,
+        responsesSoFar: isPractice ? _practiceResponses : _mainResponses,
+      );
+    } else {
+      _queueIndex++;
+      next = _queueIndex < _queue.length ? _queue[_queueIndex] : null;
+    }
     _state = _state.copyWith(currentStimulus: next);
     return response;
   }
